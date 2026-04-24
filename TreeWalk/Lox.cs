@@ -4,13 +4,12 @@
     {
         private static bool hadError = false;
 
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             if (args.Length > 1)
             {
                 Console.Error.WriteLine("Usage: CLox [script]");
-                System.Environment.Exit(64);
-                return;
+                return 64;
             }
             else if (args.Length == 1)
             {
@@ -22,8 +21,9 @@
             }
             if (hadError)
             {
-                System.Environment.Exit(65);
+                return 65;
             }
+            return 0;
         }
 
         private static void RunFile(string pathToScript)
