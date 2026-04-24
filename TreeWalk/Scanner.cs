@@ -225,15 +225,6 @@ namespace TreeWalk
                     Advance();
                 }
             }
-            // the book turned rando chars at the end of a number to be an identifier, this was probably an oversight but i corrected it here
-            if (!IsAtEnd())
-            {
-                if (!Char.IsWhiteSpace(source[current]))
-                {
-                    Lox.Error(line, $"Unexpected character in number literal: {source[current]}");
-                    return;
-                }
-            }
             AddToken(NUMBER, Double.Parse(source.Substring(start, current - start)));
         }
 
