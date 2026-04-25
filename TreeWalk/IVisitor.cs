@@ -6,9 +6,6 @@ namespace TreeWalk
 {
     public interface IVisitor<T>
     {
-        T Visit(Binary expr);
-        T Visit(Grouping expr);
-        T Visit(Literal expr);
-        T Visit(Unary expr);
+        T Visit(Expr e);
     }
 }

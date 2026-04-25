@@ -11,28 +11,20 @@ namespace TreeWalk
             return expr.Accept(this);
         }
 
-        public string Visit(Binary expr)
+        public string Visit(Expr expr)
         {
-            return Parenthesize(expr.Operator.Lexeme, expr.Left, expr.Right);
-        }
-
-        public string Visit(Grouping expr)
-        {
-            return Parenthesize("group", expr.Expression);
-        }
-
-        public string Visit(Literal expr)
-        {
-            if (expr.Value is null)
+            return expr switch
             {
-                return "nil";
-            }
-            return expr.Value?.ToString() ?? string.Empty;
-        }
-
-        public string Visit(Unary expr)
-        {
-            return Parenthesize(expr.Operator.Lexeme, expr.Right);
+                Binary b => Parenthesize(b.Operator.Lexeme, b.Left, b.Right),
+                Grouping g => Parenthesize("group", g.Expression),
+                Literal l => l.Value switch
+                {
+                    null => "nil",
+                    _ => l.Value.ToString() ?? string.Empty
+                },
+                Unary u => Parenthesize(u.Operator.Lexeme, u.Right),
+                _ => throw new NotImplementedException($"Unknown expression type: {expr.GetType().Name}")
+            };
         }
 
         private string Parenthesize(object name, params Expr[] expressions)
