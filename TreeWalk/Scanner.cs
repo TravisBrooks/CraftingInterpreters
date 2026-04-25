@@ -1,12 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using static TreeWalk.TokenType;
 
 namespace TreeWalk
 {
     internal class Scanner
     {
-        private static readonly Dictionary<string, TokenType> keywords = new()
+        private static readonly Dictionary<string, TokenType> _keywords = new()
         {
             ["and"] = AND,
             ["class"] = CLASS,
@@ -25,18 +24,17 @@ namespace TreeWalk
             ["var"] = VAR,
             ["while"] = WHILE
         };
-
-        private readonly string source;
-        private readonly List<Token> tokens;
-        private int start;
-        private int current;
-        private int line;
+        private readonly string _source;
+        private readonly List<Token> _tokens;
+        private int _start;
+        private int _current;
+        private int _line;
 
         public Scanner(string source)
         {
-            this.source = source;
-            tokens = [];
-            line = 1;
+            _source = source;
+            _tokens = [];
+            _line = 1;
         }
 
         public IList<Token> ScanTokens()
@@ -44,16 +42,16 @@ namespace TreeWalk
             while (!IsAtEnd())
             {
                 // We are at the beginning of the next lexeme.
-                start = current;
+                _start = _current;
                 ScanToken();
             }
-            tokens.Add(new Token(EOF, string.Empty, null, line));
-            return tokens.ToImmutableList();
+            _tokens.Add(new Token(EOF, string.Empty, null, _line));
+            return _tokens.ToImmutableList();
         }
 
         private bool IsAtEnd()
         {
-            return current >= source.Length;
+            return _current >= _source.Length;
         }
 
         private void ScanToken()
@@ -123,7 +121,7 @@ namespace TreeWalk
                     // Ignore whitespace.
                     break;
                 case '\n':
-                    line++;
+                    _line++;
                     break;
                 case '"':
                     this.String();
@@ -139,7 +137,7 @@ namespace TreeWalk
                     }
                     else
                     {
-                        Lox.Error(line, $"Unexpected character: {c}");
+                        Lox.Error(_line, $"Unexpected character: {c}");
                     }
                     break;
             }
@@ -147,7 +145,7 @@ namespace TreeWalk
 
         private char Advance()
         {
-            return source[current++];
+            return _source[_current++];
         }
 
         private void AddToken(TokenType tokenType)
@@ -158,8 +156,8 @@ namespace TreeWalk
         private void AddToken(TokenType tokenType, object? literal)
         {
             // Slight difference from book because java's substring takes 2 indexes and c# takes start index and length.
-            var txt = source.Substring(start, current - start);
-            tokens.Add(new Token(tokenType, txt, literal, line));
+            var txt = _source.Substring(_start, _current - _start);
+            _tokens.Add(new Token(tokenType, txt, literal, _line));
         }
 
         private bool Match(char expected)
@@ -168,10 +166,10 @@ namespace TreeWalk
             {
                 return false;
             }
-            var isMatch = source[current] == expected;
+            var isMatch = _source[_current] == expected;
             if (isMatch)
             {
-                current++;
+                _current++;
             }
             return isMatch;
         }
@@ -182,7 +180,7 @@ namespace TreeWalk
             {
                 return '\0';
             }
-            return source[current];
+            return _source[_current];
         }
 
         private void String()
@@ -191,14 +189,14 @@ namespace TreeWalk
             {
                 if (Peek() == '\n')
                 {
-                    line++;
+                    _line++;
                 }
                 Advance();
             }
 
             if (IsAtEnd())
             {
-                Lox.Error(line, "Unterminated string.");
+                Lox.Error(_line, "Unterminated string.");
                 return;
             }
 
@@ -206,7 +204,7 @@ namespace TreeWalk
             Advance();
 
             // Trim the surrounding quotes.
-            var value = source.Substring(start + 1, current - start - 2);
+            var value = _source.Substring(_start + 1, _current - _start - 2);
             AddToken(STRING, value);
         }
 
@@ -225,16 +223,16 @@ namespace TreeWalk
                     Advance();
                 }
             }
-            AddToken(NUMBER, Double.Parse(source.Substring(start, current - start)));
+            AddToken(NUMBER, Double.Parse(_source.Substring(_start, _current - _start)));
         }
 
         private char PeekNext()
         {
-            if (current + 1 >= source.Length)
+            if (_current + 1 >= _source.Length)
             {
                 return '\0';
             }
-            return source[current + 1];
+            return _source[_current + 1];
         }
 
         private void Identifier()
@@ -243,8 +241,8 @@ namespace TreeWalk
             {
                 Advance();
             }
-            var txt = source.Substring(start, current - start);
-            if (keywords.TryGetValue(txt, out TokenType tknType))
+            var txt = _source.Substring(_start, _current - _start);
+            if (_keywords.TryGetValue(txt, out TokenType tknType))
             {
                 AddToken(tknType);
             }

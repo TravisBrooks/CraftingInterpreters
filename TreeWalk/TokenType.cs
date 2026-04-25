@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TreeWalk
+﻿namespace TreeWalk
 {
     public enum TokenType
     {
@@ -31,7 +27,7 @@ namespace TreeWalk
 
         // Literals.
         IDENTIFIER,
-        STRING, 
+        STRING,
         NUMBER,
 
         // Keywords.
