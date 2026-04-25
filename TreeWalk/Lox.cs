@@ -53,7 +53,7 @@
             {
                 Console.WriteLine(">");
                 var line = reader.ReadLine();
-                if (line is null) 
+                if (line is null)
                 {
                     break;
                 }

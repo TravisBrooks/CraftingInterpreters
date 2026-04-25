@@ -2,7 +2,5 @@
 
 namespace TreeWalk
 {
-    public record class Token(TokenType tokenType, string lexeme, object? literal, int line)
-    {
-    }
+    public record class Token(TokenType TokenType, string Lexeme, object? Literal, int Line);
 }
