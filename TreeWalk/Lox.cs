@@ -2,7 +2,7 @@
 {
     public class Lox
     {
-        private static bool hadError = false;
+        private static readonly List<string> _errors = [];
 
         static int Main(string[] args)
         {
@@ -19,8 +19,9 @@
             {
                 RunPrompt();
             }
-            if (hadError)
+            if (HadError())
             {
+                PrintErrors();
                 return 65;
             }
             return 0;
@@ -36,7 +37,7 @@
         {
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
-            if (hadError)
+            if (HadError())
             {
                 return;
             }
@@ -58,7 +59,11 @@
                     break;
                 }
                 Run(line);
-                hadError = false;
+                if (HadError())
+                {
+                    PrintErrors();
+                    _errors.Clear();
+                }
             }
         }
 
@@ -69,8 +74,20 @@
 
         private static void ReportError(int line, string where, string message)
         {
-            Console.Error.WriteLine($"[line {line}] Error{where}: {message}");
-            hadError = true;
+            _errors.Add($"[line {line}] Error{where}: {message}");
+        }
+
+        private static bool HadError()
+        {
+            return _errors.Count > 0;
+        }
+
+        private static void PrintErrors()
+        {
+            foreach (var error in _errors)
+            {
+                Console.Error.WriteLine(error);
+            }
         }
     }
 }
