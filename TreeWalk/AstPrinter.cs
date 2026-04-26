@@ -4,11 +4,6 @@ namespace TreeWalk
 {
     public class AstPrinter : IVisitor<string>
     {
-        public string Print(Expr expr)
-        {
-            return expr.Accept(this);
-        }
-
         public string Visit(Expr expr)
         {
             return expr switch
@@ -25,6 +20,11 @@ namespace TreeWalk
             };
         }
 
+        public string Print(Expr expr)
+        {
+            return expr.Accept(this);
+        }
+
         private string Parenthesize(object name, params Expr[] expressions)
         {
             var sb = new StringBuilder();
@@ -34,6 +34,7 @@ namespace TreeWalk
                 sb.Append(' ');
                 sb.Append(expr.Accept(this));
             }
+
             sb.Append(')');
             return sb.ToString();
         }

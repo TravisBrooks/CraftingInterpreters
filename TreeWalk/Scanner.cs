@@ -24,11 +24,12 @@ namespace TreeWalk
             ["var"] = VAR,
             ["while"] = WHILE
         };
+
         private readonly string _source;
         private readonly List<Token> _tokens;
-        private int _start;
         private int _current;
         private int _line;
+        private int _start;
 
         public Scanner(string source)
         {
@@ -45,6 +46,7 @@ namespace TreeWalk
                 _start = _current;
                 ScanToken();
             }
+
             _tokens.Add(new Token(EOF, string.Empty, null, _line));
             return _tokens.ToImmutableList();
         }
@@ -114,6 +116,7 @@ namespace TreeWalk
                     {
                         AddToken(SLASH);
                     }
+
                     break;
                 case ' ':
                 case '\r':
@@ -124,7 +127,7 @@ namespace TreeWalk
                     _line++;
                     break;
                 case '"':
-                    this.String();
+                    String();
                     break;
                 default:
                     if (char.IsDigit(c))
@@ -139,6 +142,7 @@ namespace TreeWalk
                     {
                         Lox.Error(_line, $"Unexpected character: {c}");
                     }
+
                     break;
             }
         }
@@ -166,11 +170,13 @@ namespace TreeWalk
             {
                 return false;
             }
+
             var isMatch = _source[_current] == expected;
             if (isMatch)
             {
                 _current++;
             }
+
             return isMatch;
         }
 
@@ -180,6 +186,7 @@ namespace TreeWalk
             {
                 return '\0';
             }
+
             return _source[_current];
         }
 
@@ -191,6 +198,7 @@ namespace TreeWalk
                 {
                     _line++;
                 }
+
                 Advance();
             }
 
@@ -214,6 +222,7 @@ namespace TreeWalk
             {
                 Advance();
             }
+
             if (Peek() == '.' && char.IsDigit(PeekNext()))
             {
                 // Consume the "."
@@ -223,7 +232,8 @@ namespace TreeWalk
                     Advance();
                 }
             }
-            AddToken(NUMBER, Double.Parse(_source.Substring(_start, _current - _start)));
+
+            AddToken(NUMBER, double.Parse(_source.Substring(_start, _current - _start)));
         }
 
         private char PeekNext()
@@ -232,6 +242,7 @@ namespace TreeWalk
             {
                 return '\0';
             }
+
             return _source[_current + 1];
         }
 
@@ -241,8 +252,9 @@ namespace TreeWalk
             {
                 Advance();
             }
+
             var txt = _source.Substring(_start, _current - _start);
-            if (_keywords.TryGetValue(txt, out TokenType tknType))
+            if (_keywords.TryGetValue(txt, out var tknType))
             {
                 AddToken(tknType);
             }
