@@ -20,8 +20,12 @@ namespace TreeWalk
             };
         }
 
-        public string Print(Expr expr)
+        public string Print(Expr? expr)
         {
+            if (expr is null)
+            {
+                return "nil";
+            }
             return expr.Accept(this);
         }
 

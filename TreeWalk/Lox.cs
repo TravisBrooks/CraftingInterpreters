@@ -2,16 +2,17 @@
 {
     public class Lox
     {
-        private static readonly List<string> _errors = [];
+        private static readonly List<string> Errors = [];
 
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             if (args.Length > 1)
             {
                 Console.Error.WriteLine("Usage: CLox [script]");
                 return 64;
             }
-            else if (args.Length == 1)
+
+            if (args.Length == 1)
             {
                 RunFile(args[0]);
             }
@@ -19,11 +20,13 @@
             {
                 RunPrompt();
             }
+
             if (HadError())
             {
                 PrintErrors();
                 return 65;
             }
+
             return 0;
         }
 
@@ -37,14 +40,15 @@
         {
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
+            var parser = new Parser(tokens);
+            var expression = parser.Parse();
             if (HadError())
             {
                 return;
             }
-            foreach (var token in tokens)
-            {
-                Console.WriteLine(token);
-            }
+
+            // For now, just print the expression tree.
+            Console.WriteLine(new AstPrinter().Print(expression));
         }
 
         private static void RunPrompt()
@@ -58,11 +62,12 @@
                 {
                     break;
                 }
+
                 Run(line);
                 if (HadError())
                 {
                     PrintErrors();
-                    _errors.Clear();
+                    Errors.Clear();
                 }
             }
         }
@@ -74,17 +79,29 @@
 
         private static void ReportError(int line, string where, string message)
         {
-            _errors.Add($"[line {line}] Error{where}: {message}");
+            Errors.Add($"[line {line}] Error{where}: {message}");
+        }
+
+        public static void Error(Token token, string errorMessage)
+        {
+            if (token.TokenType == TokenType.EOF)
+            {
+                ReportError(token.Line, " at end", errorMessage);
+            }
+            else
+            {
+                ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
+            }
         }
 
         private static bool HadError()
         {
-            return _errors.Count > 0;
+            return Errors.Count > 0;
         }
 
         private static void PrintErrors()
         {
-            foreach (var error in _errors)
+            foreach (var error in Errors)
             {
                 Console.Error.WriteLine(error);
             }

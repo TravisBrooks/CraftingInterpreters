@@ -152,12 +152,7 @@ namespace TreeWalk
             return _source[_current++];
         }
 
-        private void AddToken(TokenType tokenType)
-        {
-            AddToken(tokenType, null);
-        }
-
-        private void AddToken(TokenType tokenType, object? literal)
+        private void AddToken(TokenType tokenType, object? literal = null)
         {
             // Slight difference from book because java's substring takes 2 indexes and c# takes start index and length.
             var txt = _source.Substring(_start, _current - _start);
@@ -208,10 +203,10 @@ namespace TreeWalk
                 return;
             }
 
-            // The closing ".
+            // The closing quote
             Advance();
 
-            // Trim the surrounding quotes.
+            // Trim the surrounding quotes
             var value = _source.Substring(_start + 1, _current - _start - 2);
             AddToken(STRING, value);
         }
@@ -231,6 +226,13 @@ namespace TreeWalk
                 {
                     Advance();
                 }
+            }
+            // The book allowed various characters after a number that were turned into an identifier token. That was probably an oversight.
+            var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
+            if (!allowedNextChars.Contains(Peek()))
+            {
+                Lox.Error(_line, "Invalid character after number.");
+                return;
             }
 
             AddToken(NUMBER, double.Parse(_source.Substring(_start, _current - _start)));
