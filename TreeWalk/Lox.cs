@@ -3,6 +3,8 @@
     public class Lox
     {
         private static readonly List<string> Errors = [];
+        private static readonly List<string> RuntimeErrors = [];
+        private static readonly Interpreter Interpreter = new();
 
         private static int Main(string[] args)
         {
@@ -14,44 +16,71 @@
 
             if (args.Length == 1)
             {
-                RunFile(args[0]);
+                _RunFile(args[0]);
             }
             else
             {
-                RunPrompt();
+                _RunPrompt();
             }
 
-            if (HadError())
+            if (_HadError())
             {
-                PrintErrors();
+                _PrintErrors();
                 return 65;
+            }
+
+            if (_HadRuntimeError())
+            {
+                _PrintRuntimeErrors();
+                return 70;
             }
 
             return 0;
         }
 
-        private static void RunFile(string pathToScript)
+        public static void Error(int line, string message)
         {
-            var source = File.ReadAllText(pathToScript);
-            Run(source);
+            _ReportError(line, string.Empty, message);
         }
 
-        private static void Run(string source)
+        public static void Error(Token token, string errorMessage)
+        {
+            if (token.TokenType == TokenType.EOF)
+            {
+                _ReportError(token.Line, " at end", errorMessage);
+            }
+            else
+            {
+                _ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
+            }
+        }
+
+        public static void RuntimeError(LoxRuntimeError lre)
+        {
+            _ReportRuntimeError(lre);
+        }
+
+        private static void _RunFile(string pathToScript)
+        {
+            var source = File.ReadAllText(pathToScript);
+            _Run(source);
+        }
+
+        private static void _Run(string source)
         {
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(tokens);
             var expression = parser.Parse();
-            if (HadError())
+            if (_HadError())
             {
                 return;
             }
 
-            // For now, just print the expression tree.
-            Console.WriteLine(new AstPrinter().Print(expression));
+            Interpreter.Interpret(expression);
         }
 
-        private static void RunPrompt()
+        private static void _RunPrompt()
         {
             using var reader = new StreamReader(Console.OpenStandardInput());
             while (true)
@@ -63,45 +92,59 @@
                     break;
                 }
 
-                Run(line);
-                if (HadError())
+                _Run(line);
+                if (_HadError())
                 {
-                    PrintErrors();
+                    _PrintErrors();
                     Errors.Clear();
+                }
+
+                if (_HadRuntimeError())
+                {
+                    _PrintRuntimeErrors();
+                    RuntimeErrors.Clear();
                 }
             }
         }
 
-        public static void Error(int line, string message)
+        private static void _ReportError(int line, string where, string message)
         {
-            ReportError(line, string.Empty, message);
+            Errors.Add($"ERROR [line {line}] Error{where}: {message}");
         }
 
-        private static void ReportError(int line, string where, string message)
+        private static void _ReportRuntimeError(LoxRuntimeError lre)
         {
-            Errors.Add($"[line {line}] Error{where}: {message}");
-        }
-
-        public static void Error(Token token, string errorMessage)
-        {
-            if (token.TokenType == TokenType.EOF)
+            if (lre.Token is null)
             {
-                ReportError(token.Line, " at end", errorMessage);
+                RuntimeErrors.Add($"RUNTIME ERROR [line (Unknown))]: {lre.Message}");
             }
             else
             {
-                ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
+                RuntimeErrors.Add($"RUNTIME ERROR [line {lre.Token.Line}]: {lre.Message}");
             }
         }
 
-        private static bool HadError()
+        private static bool _HadError()
         {
             return Errors.Count > 0;
         }
 
-        private static void PrintErrors()
+        private static bool _HadRuntimeError()
+        {
+            return RuntimeErrors.Count > 0;
+        }
+
+        private static void _PrintErrors()
         {
             foreach (var error in Errors)
+            {
+                Console.Error.WriteLine(error);
+            }
+        }
+
+        private static void _PrintRuntimeErrors()
+        {
+            foreach (var error in RuntimeErrors)
             {
                 Console.Error.WriteLine(error);
             }
