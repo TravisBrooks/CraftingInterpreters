@@ -1,12 +1,14 @@
 ﻿namespace TreeWalk
 {
-    public class Lox
+    public static class Lox
     {
         private static readonly List<string> Errors = [];
         private static readonly List<string> RuntimeErrors = [];
         private static readonly Interpreter Interpreter = new();
 
-        private static int Main(string[] args)
+        #region Public interface
+
+        public static int Main(string[] args)
         {
             if (args.Length > 1)
             {
@@ -60,6 +62,10 @@
             _ReportRuntimeError(lre);
         }
 
+        #endregion
+
+        #region Private Lox grammar processors
+
         private static void _RunFile(string pathToScript)
         {
             var source = File.ReadAllText(pathToScript);
@@ -72,11 +78,12 @@
             var tokens = scanner.ScanTokens();
             var parser = new Parser(tokens);
             var expression = parser.Parse();
+            // RuntimeError only gets called by Interpreter.Interpret so no need to check for that here.
             if (_HadError())
             {
                 return;
             }
-
+            
             Interpreter.Interpret(expression);
         }
 
@@ -106,6 +113,10 @@
                 }
             }
         }
+
+        #endregion
+
+        #region Private Lox grammar error handling
 
         private static void _ReportError(int line, string where, string message)
         {
@@ -149,5 +160,7 @@
                 Console.Error.WriteLine(error);
             }
         }
+
+        #endregion
     }
 }

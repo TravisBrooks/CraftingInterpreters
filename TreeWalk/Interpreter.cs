@@ -41,7 +41,7 @@ namespace TreeWalk
                     _ => throw new LoxRuntimeError(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
                 };
             }
-            // unreachable
+
             return null;
         }
 
@@ -61,7 +61,6 @@ namespace TreeWalk
                 LESS_EQUAL => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l <= r),
                 BANG_EQUAL => !_IsEqual(lhs, rhs),
                 EQUAL_EQUAL => _IsEqual(lhs, rhs),
-                // unreachable
                 _ => null
             };
 
@@ -82,6 +81,7 @@ namespace TreeWalk
             {
                 throw new LoxRuntimeError(null, "The expression was nil");
             }
+
             return expr.Accept(this);
         }
 
@@ -112,6 +112,7 @@ namespace TreeWalk
             {
                 return unaryHandler(d);
             }
+
             throw new LoxRuntimeError(op, "Operand must be a number.");
         }
 
@@ -121,20 +122,19 @@ namespace TreeWalk
             {
                 return binaryHandler(l, r);
             }
+
             throw new LoxRuntimeError(op, "Operands must be numbers.");
         }
 
         private static string _Stringify(object? o)
         {
-            if (o is double d)
+            return o switch
             {
-                return d.ToString("G");
-            }
-            if (o is bool b)
-            {
-                return b.ToString().ToLower();
-            }
-            return o?.ToString() ?? "nil";
+                double d => d.ToString("G"),
+                // forcing lowercase for true and false to match Lox's output
+                bool b => b ? "true" : "false",
+                _ => o?.ToString() ?? "nil"
+            };
         }
     }
 }
