@@ -77,14 +77,14 @@
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(tokens);
-            var expression = parser.Parse();
+            var statements = parser.Parse();
             // RuntimeError only gets called by Interpreter.Interpret so no need to check for that here.
             if (_HadError())
             {
                 return;
             }
-            
-            Interpreter.Interpret(expression);
+
+            Interpreter.Interpret(statements);
         }
 
         private static void _RunPrompt()

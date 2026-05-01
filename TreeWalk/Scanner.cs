@@ -5,7 +5,7 @@ namespace TreeWalk
 {
     internal class Scanner
     {
-        private static readonly Dictionary<string, TokenType> _keywords = new()
+        private static readonly Dictionary<string, TokenType> Keywords = new()
         {
             ["and"] = AND,
             ["class"] = CLASS,
@@ -227,6 +227,7 @@ namespace TreeWalk
                     Advance();
                 }
             }
+
             // The book allowed various characters after a number that were turned into an identifier token. That was probably an oversight.
             var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
             if (!allowedNextChars.Contains(Peek()))
@@ -256,7 +257,7 @@ namespace TreeWalk
             }
 
             var txt = _source.Substring(_start, _current - _start);
-            if (_keywords.TryGetValue(txt, out var tknType))
+            if (Keywords.TryGetValue(txt, out var tknType))
             {
                 AddToken(tknType);
             }

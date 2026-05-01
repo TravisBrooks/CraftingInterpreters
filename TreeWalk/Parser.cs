@@ -2,7 +2,7 @@
 
 namespace TreeWalk
 {
-    // This is the Lox grammar:
+    // This is the first Lox grammar:
     // expression     → equality ;
     // equality       → comparison(( "!=" | "==" ) comparison )* ;
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -10,6 +10,14 @@ namespace TreeWalk
     // factor         → unary(( "/" | "*" ) unary )* ;
     // unary          → ( "!" | "-" ) unary | primary ;
     // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" ;
+    //
+    // In chpt 8 (Statements and State) new grammar rules are introduced:
+    // program        → statement* EOF;
+    // declaration    → varDecl | statement ;
+    // statement      → exprStmt | printStmt | block ;
+    // exprStmt       → expression ";" ;
+    // printStmt      → "print" expression ";" ;
+    // block          → "{" declaration* "}" ;
     public class Parser
     {
         private readonly List<Token> _tokens;
@@ -21,24 +29,57 @@ namespace TreeWalk
             _current = 0;
         }
 
-        public Expr? Parse()
+        public IList<Stmt> Parse()
         {
-            try
+            var statements = new List<Stmt>();
+            while (!IsAtEnd())
             {
-                return Expression();
+                statements.Add(Declaration());
             }
-            catch (ParseError)
-            {
-                return null;
-            }
+
+            return statements;
         }
 
         #region Lox grammar implementation
 
+        // declaration → varDecl | statement ;
+        private Stmt? Declaration()
+        {
+            try
+            {
+                return Match(VAR) ? VarDeclaration() : Statement();
+            }
+            catch (ParseError)
+            {
+                Synchronize();
+                return null;
+            }
+        }
+
         // expression → equality ;
         private Expr Expression()
         {
-            return Equality();
+            return Assignment();
+        }
+
+        // assignment → IDENTIFIER "=" assignment | equality ;
+        private Expr Assignment()
+        {
+            var expr = Equality();
+            if (Match(EQUAL))
+            {
+                var equals = Previous();
+                var value = Assignment();
+                if (expr is Variable variable)
+                {
+                    var name = variable.Name;
+                    return new Assign(name, value);
+                }
+
+                Error(equals, "Invalid assignment target.");
+            }
+
+            return expr;
         }
 
         // equality → comparison(( "!=" | "==" ) comparison )* ;
@@ -74,40 +115,116 @@ namespace TreeWalk
                 var rightExpr = Unary();
                 return new Unary(op, rightExpr);
             }
+
             return Primary();
         }
 
-        // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" ;
+        // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER ;
         private Expr Primary()
         {
             if (Match(FALSE))
             {
                 return new Literal(false);
             }
+
             if (Match(TRUE))
             {
                 return new Literal(true);
             }
+
             if (Match(NIL))
             {
                 return new Literal(null);
             }
+
             if (Match(NUMBER, STRING))
             {
                 return new Literal(Previous().Literal);
             }
 
+            if (Match(IDENTIFIER))
+            {
+                return new Variable(Previous());
+            }
+
             if (Match(LEFT_PAREN))
             {
                 var expr = Expression();
-                Consume(RIGHT_PAREN, "Expect ')' after expression.");
+                _ = Consume(RIGHT_PAREN, "Expect ')' after expression.");
                 return new Grouping(expr);
             }
+
             throw Error(Peek(), "Expect expression.");
         }
 
+        // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+        private Stmt VarDeclaration()
+        {
+            var name = Consume(IDENTIFIER, "Expect variable name.");
+            Expr? initializer = null;
+            if (Match(EQUAL))
+            {
+                initializer = Expression();
+            }
+
+            _ = Consume(SEMICOLON, "Expect ';' after variable declaration.");
+            return new VarStatement(name, initializer);
+        }
+
+        // statement → exprStmt | printStmt | block ;
+        private Stmt Statement()
+        {
+            if (Match(PRINT))
+            {
+                return PrintStatement();
+            }
+
+            if (Match(LEFT_BRACE))
+            {
+                return BlockStatement();
+            }
+
+            return ExpressionStatement();
+        }
+
+        // printStmt → "print" expression ";" ;
+        private Stmt PrintStatement()
+        {
+            var val = Expression();
+            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            return new PrintStatement(val);
+        }
+
+        // exprStmt → expression ";" ;
+        private Stmt ExpressionStatement()
+        {
+            var val = Expression();
+            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            return new ExprStatement(val);
+        }
+
+        private Stmt BlockStatement()
+        {
+            var statements = new List<Stmt>();
+            while (!Check(RIGHT_BRACE) && !IsAtEnd())
+            {
+                var declaration = Declaration();
+                if (declaration is not null)
+                {
+                    statements.Add(declaration);
+                }
+            }
+
+            Consume(RIGHT_BRACE, "Expect '}' after block.");
+            return new BlockStatement(statements);
+        }
+
+        #endregion
+
+        #region Parser utilities
+
         /// <summary>
-        /// All the grammar rules besides Expression, Unary, Primary follow a repetitive pattern that is captured here.
+        ///     All the grammar rules besides Expression, Unary, Primary follow a repetitive pattern that is captured here.
         /// </summary>
         /// <returns></returns>
         private Expr RecursiveBinaryExprBuilder(Func<Expr> childFunc, params TokenType[] matchingTokenTypes)
@@ -119,12 +236,9 @@ namespace TreeWalk
                 var rightExpr = childFunc();
                 expr = new Binary(expr, op, rightExpr);
             }
+
             return expr;
         }
-
-        #endregion
-
-        #region Parser utilities
 
         private bool Match(params TokenType[] types)
         {
@@ -136,6 +250,7 @@ namespace TreeWalk
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -145,6 +260,7 @@ namespace TreeWalk
             {
                 return false;
             }
+
             return Peek().TokenType == tokenType;
         }
 
@@ -173,12 +289,11 @@ namespace TreeWalk
             return _tokens[_current - 1];
         }
 
-        private void Consume(TokenType expectedTokenType, string errorMessage)
+        private Token Consume(TokenType expectedTokenType, string errorMessage)
         {
             if (Check(expectedTokenType))
             {
-                Advance();
-                return;
+                return Advance();
             }
 
             throw Error(Peek(), errorMessage);
@@ -191,7 +306,7 @@ namespace TreeWalk
         }
 
         /// <summary>
-        /// If there was a grammatical error throw away tokens until we think we're at the start of the next statement.
+        ///     If there was a grammatical error throw away tokens until we think we're at the start of the next statement.
         /// </summary>
         private void Synchronize()
         {

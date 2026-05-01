@@ -4,7 +4,7 @@ namespace TreeWalk
 {
     public class AstPrinter : IVisitor<string>
     {
-        public string Visit(Expr expr)
+        public string Visit(IAstNode expr)
         {
             return expr switch
             {
@@ -26,6 +26,7 @@ namespace TreeWalk
             {
                 return "nil";
             }
+
             return expr.Accept(this);
         }
 
