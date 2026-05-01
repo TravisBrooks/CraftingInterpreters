@@ -4,6 +4,8 @@
     {
         private readonly ExpressionVisitor _expressionVisitor = new();
 
+        public LoxMode LoxMode { get; set; }
+
         public Unit Visit(IAstNode node)
         {
             return node switch
@@ -18,7 +20,12 @@
 
         private Unit _ExprStmtVisitor(Expr expr)
         {
-            _ = _expressionVisitor.Evaluate(expr);
+            var exprVal = _expressionVisitor.Evaluate(expr);
+            if (LoxMode == LoxMode.INTERACTIVE_MODE)
+            {
+                Console.WriteLine(_Stringify(exprVal));
+            }
+
             return Unit.Value;
         }
 

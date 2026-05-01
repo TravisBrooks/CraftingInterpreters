@@ -5,6 +5,7 @@
         private static readonly List<string> Errors = [];
         private static readonly List<string> RuntimeErrors = [];
         private static readonly Interpreter Interpreter = new();
+        private static LoxMode _loxMode;
 
         #region Public interface
 
@@ -69,6 +70,7 @@
         private static void _RunFile(string pathToScript)
         {
             var source = File.ReadAllText(pathToScript);
+            _loxMode = LoxMode.SCRIPT_MODE;
             _Run(source);
         }
 
@@ -84,11 +86,12 @@
                 return;
             }
 
-            Interpreter.Interpret(statements);
+            Interpreter.Interpret(statements, _loxMode);
         }
 
         private static void _RunPrompt()
         {
+            _loxMode = LoxMode.INTERACTIVE_MODE;
             using var reader = new StreamReader(Console.OpenStandardInput());
             while (true)
             {
