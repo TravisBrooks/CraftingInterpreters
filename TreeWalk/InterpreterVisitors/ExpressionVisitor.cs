@@ -12,7 +12,7 @@ namespace TreeWalk.InterpreterVisitors
                 Grouping g => Evaluate(g.Expression),
                 Unary u => _VisitUnary(u),
                 Binary b => _VisitBinary(b),
-                Variable v => Environment.GlobalMemory.Get(v.Name),
+                Variable v => Lox.GlobalEnvironment.Get(v.Name),
                 Assign a => _VisitAssign(a),
                 _ => throw new LoxRuntimeError(null, $"Unknown expression type: {node.GetType().Name}")
             };
@@ -77,7 +77,7 @@ namespace TreeWalk.InterpreterVisitors
         private object? _VisitAssign(Assign expr)
         {
             var val = Evaluate(expr.Value);
-            Environment.GlobalMemory.Assign(expr.Name, val);
+            Lox.GlobalEnvironment.Assign(expr.Name, val);
             return val;
         }
 

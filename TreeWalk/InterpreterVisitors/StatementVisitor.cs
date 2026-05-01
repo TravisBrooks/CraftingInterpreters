@@ -4,8 +4,6 @@
     {
         private readonly ExpressionVisitor _expressionVisitor = new();
 
-        public LoxMode LoxMode { get; set; }
-
         public Unit Visit(IAstNode node)
         {
             return node switch
@@ -21,7 +19,7 @@
         private Unit _ExprStmtVisitor(Expr expr)
         {
             var exprVal = _expressionVisitor.Evaluate(expr);
-            if (LoxMode == LoxMode.INTERACTIVE_MODE)
+            if (Lox.GlobalEnvironment.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
                 Console.WriteLine(_Stringify(exprVal));
             }
@@ -44,23 +42,21 @@
                 val = _expressionVisitor.Evaluate(initializer);
             }
 
-            Environment.GlobalMemory.Define(name.Lexeme, val);
+            Lox.GlobalEnvironment.Define(name.Lexeme, val);
             return Unit.Value;
         }
 
         private Unit _BlockStmtVisitor(BlockStatement bs)
         {
-            ExecuteBlock(bs.Statements, new Environment(Environment.GlobalMemory));
+            ExecuteBlock(bs.Statements);
             return Unit.Value;
         }
 
-        private void ExecuteBlock(IEnumerable<Stmt> statements, Environment environment)
+        private void ExecuteBlock(IEnumerable<Stmt> statements)
         {
-            // This hack caches the environment on the call stack, then pops them off again as the scope of the statement gets unwound.
-            var prevEnv = Environment.GlobalMemory;
             try
             {
-                Environment.GlobalMemory = environment;
+                Lox.GlobalEnvironment.EnterInnerScope();
                 foreach (var stmt in statements)
                 {
                     stmt.Accept(this);
@@ -68,7 +64,7 @@
             }
             finally
             {
-                Environment.GlobalMemory = prevEnv;
+                Lox.GlobalEnvironment.ExitInnerScope();
             }
         }
 

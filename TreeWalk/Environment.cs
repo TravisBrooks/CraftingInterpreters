@@ -2,37 +2,43 @@
 {
     public class Environment
     {
-        private readonly Environment? _enclosing;
-        private readonly Dictionary<string, object?> _values = new(StringComparer.Ordinal);
+        private readonly Stack<Dictionary<string, object?>> _scopedMemoryStack = new();
 
-        // only called for the initial GlobalMemory, which has no enclosing environment.
-        private Environment()
+        public Environment()
         {
-            _enclosing = null;
+            EnterInnerScope();
         }
 
-        public Environment(Environment enclosing)
+        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
+
+        public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
+
+        public void EnterInnerScope()
         {
-            _enclosing = enclosing;
+            _scopedMemoryStack.Push(new Dictionary<string, object?>(StringComparer.Ordinal));
         }
 
-        public static Environment GlobalMemory { get; set; } = new();
+        public void ExitInnerScope()
+        {
+            if (_scopedMemoryStack.Count > 1)
+            {
+                _scopedMemoryStack.Pop();
+            }
+        }
 
         public void Define(string name, object? value)
         {
-            _values[name] = value;
+            CurrentScope[name] = value;
         }
 
         public object? Get(Token name)
         {
-            if (_values.TryGetValue(name.Lexeme, out var value))
+            foreach (var scope in _scopedMemoryStack)
             {
-                return value;
-            }
-
-            if (_enclosing is not null)
-            {
-                return _enclosing.Get(name);
+                if (scope.TryGetValue(name.Lexeme, out var value))
+                {
+                    return value;
+                }
             }
 
             throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
@@ -40,16 +46,13 @@
 
         public void Assign(Token name, object? value)
         {
-            if (_values.ContainsKey(name.Lexeme))
+            foreach (var scope in _scopedMemoryStack)
             {
-                _values[name.Lexeme] = value;
-                return;
-            }
-
-            if (_enclosing is not null)
-            {
-                _enclosing.Assign(name, value);
-                return;
+                if (scope.ContainsKey(name.Lexeme))
+                {
+                    scope[name.Lexeme] = value;
+                    return;
+                }
             }
 
             throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
