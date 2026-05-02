@@ -1,4 +1,6 @@
-﻿namespace TreeWalk
+﻿using System.Diagnostics;
+
+namespace TreeWalk
 {
     public static class Lox
     {
@@ -6,12 +8,14 @@
         private static readonly List<string> RuntimeErrors = [];
         private static readonly Interpreter Interpreter = new();
 
-        public static Environment GlobalEnvironment { get; set; } = new();
+        public static Environment GlobalEnvironment { get; } = new();
 
         #region Public interface
 
         public static int Main(string[] args)
         {
+            var timer = new Stopwatch();
+            timer.Start();
             if (args.Length > 1)
             {
                 Console.Error.WriteLine("Usage: CLox [script]");
@@ -21,6 +25,9 @@
             if (args.Length == 1)
             {
                 _RunFile(args[0]);
+                timer.Stop();
+                Console.WriteLine();
+                Console.WriteLine($"Execution time: {timer.Elapsed}");
             }
             else
             {
@@ -129,14 +136,8 @@
 
         private static void _ReportRuntimeError(LoxRuntimeError lre)
         {
-            if (lre.Token is null)
-            {
-                RuntimeErrors.Add($"RUNTIME ERROR [line (Unknown))]: {lre.Message}");
-            }
-            else
-            {
-                RuntimeErrors.Add($"RUNTIME ERROR [line {lre.Token.Line}]: {lre.Message}");
-            }
+            var lineNumber = lre.Token is null ? "(Unknown)" : lre.Token.Line.ToString();
+            RuntimeErrors.Add($"RUNTIME ERROR [line {lineNumber}]: {lre.Message}");
         }
 
         private static bool _HadError()

@@ -29,12 +29,16 @@ namespace TreeWalk
             _current = 0;
         }
 
-        public IList<Stmt> Parse()
+        public IEnumerable<Stmt> Parse()
         {
             var statements = new List<Stmt>();
             while (!IsAtEnd())
             {
-                statements.Add(Declaration());
+                var decl = Declaration();
+                if (decl is not null)
+                {
+                    statements.Add(decl);
+                }
             }
 
             return statements;
@@ -179,16 +183,11 @@ namespace TreeWalk
                 return PrintStatement();
             }
 
-            if (Match(LEFT_BRACE))
-            {
-                return BlockStatement();
-            }
-
-            return ExpressionStatement();
+            return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
         }
 
         // printStmt → "print" expression ";" ;
-        private Stmt PrintStatement()
+        private PrintStatement PrintStatement()
         {
             var val = Expression();
             _ = Consume(SEMICOLON, "Expect ';' after value.");
@@ -196,14 +195,14 @@ namespace TreeWalk
         }
 
         // exprStmt → expression ";" ;
-        private Stmt ExpressionStatement()
+        private ExprStatement ExpressionStatement()
         {
             var val = Expression();
             _ = Consume(SEMICOLON, "Expect ';' after value.");
             return new ExprStatement(val);
         }
 
-        private Stmt BlockStatement()
+        private BlockStatement BlockStatement()
         {
             var statements = new List<Stmt>();
             while (!Check(RIGHT_BRACE) && !IsAtEnd())
@@ -242,13 +241,10 @@ namespace TreeWalk
 
         private bool Match(params TokenType[] types)
         {
-            foreach (var t in types)
+            if (types.Any(Check))
             {
-                if (Check(t))
-                {
-                    Advance();
-                    return true;
-                }
+                Advance();
+                return true;
             }
 
             return false;

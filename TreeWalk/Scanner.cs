@@ -177,12 +177,7 @@ namespace TreeWalk
 
         private char Peek()
         {
-            if (IsAtEnd())
-            {
-                return '\0';
-            }
-
-            return _source[_current];
+            return IsAtEnd() ? '\0' : _source[_current];
         }
 
         private void String()

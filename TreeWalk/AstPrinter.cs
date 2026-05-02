@@ -4,9 +4,9 @@ namespace TreeWalk
 {
     public class AstPrinter : IVisitor<string>
     {
-        public string Visit(IAstNode expr)
+        public string Visit(IAstNode node)
         {
-            return expr switch
+            return node switch
             {
                 Binary b => Parenthesize(b.Operator.Lexeme, b.Left, b.Right),
                 Grouping g => Parenthesize("group", g.Expression),
@@ -16,18 +16,13 @@ namespace TreeWalk
                     _ => l.Value.ToString() ?? string.Empty
                 },
                 Unary u => Parenthesize(u.Operator.Lexeme, u.Right),
-                _ => throw new NotImplementedException($"Unknown expression type: {expr.GetType().Name}")
+                _ => throw new NotImplementedException($"Unknown expression type: {node.GetType().Name}")
             };
         }
 
         public string Print(Expr? expr)
         {
-            if (expr is null)
-            {
-                return "nil";
-            }
-
-            return expr.Accept(this);
+            return expr is null ? "nil" : expr.Accept(this);
         }
 
         private string Parenthesize(object name, params Expr[] expressions)

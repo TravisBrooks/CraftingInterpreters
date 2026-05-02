@@ -6,10 +6,9 @@
 
         public Environment()
         {
-            EnterInnerScope();
+            // Add the global scope
+            _scopedMemoryStack.Push(new Dictionary<string, object?>(StringComparer.Ordinal));
         }
-
-        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
 
         public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
 
@@ -20,6 +19,7 @@
 
         public void ExitInnerScope()
         {
+            // Ensure we don't pop the global scope
             if (_scopedMemoryStack.Count > 1)
             {
                 _scopedMemoryStack.Pop();
@@ -46,16 +46,15 @@
 
         public void Assign(Token name, object? value)
         {
-            foreach (var scope in _scopedMemoryStack)
+            var match = _scopedMemoryStack.FirstOrDefault(scope => scope.ContainsKey(name.Lexeme));
+            if (match is null)
             {
-                if (scope.ContainsKey(name.Lexeme))
-                {
-                    scope[name.Lexeme] = value;
-                    return;
-                }
+                throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
             }
 
-            throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
+            match[name.Lexeme] = value;
         }
+
+        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
     }
 }

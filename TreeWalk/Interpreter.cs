@@ -6,7 +6,7 @@ namespace TreeWalk
     {
         private readonly StatementVisitor _statementVisitor = new();
 
-        public void Interpret(IList<Stmt> statements)
+        public void Interpret(IEnumerable<Stmt> statements)
         {
             try
             {
