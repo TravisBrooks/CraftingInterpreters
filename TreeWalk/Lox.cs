@@ -56,14 +56,8 @@ namespace TreeWalk
 
         public static void Error(Token token, string errorMessage)
         {
-            if (token.TokenType == TokenType.EOF)
-            {
-                ReportError(token.Line, " at end", errorMessage);
-            }
-            else
-            {
-                ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
-            }
+            var whereStr = token.TokenType == TokenType.EOF ? " at end" : $" at '{token.Lexeme}'";
+            ReportError(token.Line, whereStr, errorMessage);
         }
 
         public static void RuntimeError(LoxRuntimeError lre)

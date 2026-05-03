@@ -252,14 +252,7 @@ namespace TreeWalk
             }
 
             var txt = _source.Substring(_start, _current - _start);
-            if (Keywords.TryGetValue(txt, out var tknType))
-            {
-                AddToken(tknType);
-            }
-            else
-            {
-                AddToken(IDENTIFIER);
-            }
+            AddToken(Keywords.GetValueOrDefault(txt, IDENTIFIER));
         }
     }
 }
