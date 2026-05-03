@@ -24,25 +24,25 @@ namespace TreeWalk
 
             if (args.Length == 1)
             {
-                _RunFile(args[0]);
+                RunFile(args[0]);
                 timer.Stop();
                 Console.WriteLine();
                 Console.WriteLine($"Execution time: {timer.Elapsed}");
             }
             else
             {
-                _RunPrompt();
+                RunPrompt();
             }
 
-            if (_HadError())
+            if (HadError())
             {
-                _PrintErrors();
+                PrintErrors();
                 return 65;
             }
 
-            if (_HadRuntimeError())
+            if (HadRuntimeError())
             {
-                _PrintRuntimeErrors();
+                PrintRuntimeErrors();
                 return 70;
             }
 
@@ -51,45 +51,45 @@ namespace TreeWalk
 
         public static void Error(int line, string message)
         {
-            _ReportError(line, string.Empty, message);
+            ReportError(line, string.Empty, message);
         }
 
         public static void Error(Token token, string errorMessage)
         {
             if (token.TokenType == TokenType.EOF)
             {
-                _ReportError(token.Line, " at end", errorMessage);
+                ReportError(token.Line, " at end", errorMessage);
             }
             else
             {
-                _ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
+                ReportError(token.Line, $" a '{token.Lexeme}'", errorMessage);
             }
         }
 
         public static void RuntimeError(LoxRuntimeError lre)
         {
-            _ReportRuntimeError(lre);
+            ReportRuntimeError(lre);
         }
 
         #endregion
 
         #region Private Lox grammar processors
 
-        private static void _RunFile(string pathToScript)
+        private static void RunFile(string pathToScript)
         {
             var source = File.ReadAllText(pathToScript);
             GlobalEnvironment.LoxMode = LoxMode.SCRIPT_MODE;
-            _Run(source);
+            Run(source);
         }
 
-        private static void _Run(string source)
+        private static void Run(string source)
         {
             var scanner = new Scanner(source);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(tokens);
             var statements = parser.Parse();
             // RuntimeError only gets called by Interpreter.Interpret so no need to check for that here.
-            if (_HadError())
+            if (HadError())
             {
                 return;
             }
@@ -97,7 +97,7 @@ namespace TreeWalk
             Interpreter.Interpret(statements);
         }
 
-        private static void _RunPrompt()
+        private static void RunPrompt()
         {
             GlobalEnvironment.LoxMode = LoxMode.INTERACTIVE_MODE;
             using var reader = new StreamReader(Console.OpenStandardInput());
@@ -110,16 +110,16 @@ namespace TreeWalk
                     break;
                 }
 
-                _Run(line);
-                if (_HadError())
+                Run(line);
+                if (HadError())
                 {
-                    _PrintErrors();
+                    PrintErrors();
                     Errors.Clear();
                 }
 
-                if (_HadRuntimeError())
+                if (HadRuntimeError())
                 {
-                    _PrintRuntimeErrors();
+                    PrintRuntimeErrors();
                     RuntimeErrors.Clear();
                 }
             }
@@ -129,28 +129,28 @@ namespace TreeWalk
 
         #region Private Lox grammar error handling
 
-        private static void _ReportError(int line, string where, string message)
+        private static void ReportError(int line, string where, string message)
         {
             Errors.Add($"ERROR [line {line}] Error{where}: {message}");
         }
 
-        private static void _ReportRuntimeError(LoxRuntimeError lre)
+        private static void ReportRuntimeError(LoxRuntimeError lre)
         {
             var lineNumber = lre.Token is null ? "(Unknown)" : lre.Token.Line.ToString();
             RuntimeErrors.Add($"RUNTIME ERROR [line {lineNumber}]: {lre.Message}");
         }
 
-        private static bool _HadError()
+        private static bool HadError()
         {
             return Errors.Count > 0;
         }
 
-        private static bool _HadRuntimeError()
+        private static bool HadRuntimeError()
         {
             return RuntimeErrors.Count > 0;
         }
 
-        private static void _PrintErrors()
+        private static void PrintErrors()
         {
             foreach (var error in Errors)
             {
@@ -158,7 +158,7 @@ namespace TreeWalk
             }
         }
 
-        private static void _PrintRuntimeErrors()
+        private static void PrintRuntimeErrors()
         {
             foreach (var error in RuntimeErrors)
             {

@@ -2,7 +2,7 @@
 
 namespace TreeWalk
 {
-    public class AstPrinter : IVisitor<string>
+    public class AstPrinter : IVisitor<IAstNode, string>
     {
         public string Visit(IAstNode node)
         {

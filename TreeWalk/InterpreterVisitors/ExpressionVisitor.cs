@@ -2,19 +2,19 @@
 
 namespace TreeWalk.InterpreterVisitors
 {
-    public class ExpressionVisitor : IVisitor<object?>
+    public class ExpressionVisitor : IVisitor<Expr, object?>
     {
-        public object? Visit(IAstNode node)
+        public object? Visit(Expr expr)
         {
-            return node switch
+            return expr switch
             {
                 Literal l => l.Value,
                 Grouping g => Evaluate(g.Expression),
-                Unary u => _VisitUnary(u),
-                Binary b => _VisitBinary(b),
+                Unary u => VisitUnary(u),
+                Binary b => VisitBinary(b),
                 Variable v => Lox.GlobalEnvironment.Get(v.Name),
-                Assign a => _VisitAssign(a),
-                _ => throw new LoxRuntimeError(null, $"Unknown expression type: {node.GetType().Name}")
+                Assign a => VisitAssign(a),
+                _ => throw new LoxRuntimeError(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
 
@@ -28,15 +28,15 @@ namespace TreeWalk.InterpreterVisitors
             return expr.Accept(this);
         }
 
-        private object? _VisitUnary(Unary u)
+        private object? VisitUnary(Unary u)
         {
             var right = Evaluate(u.Right);
             if (right is not null)
             {
                 return u.Operator.TokenType switch
                 {
-                    BANG => !_IsTruthy(right),
-                    MINUS => _CheckOperandIsNumber(u.Operator, right, d => -d),
+                    BANG => !IsTruthy(right),
+                    MINUS => CheckOperandIsNumber(u.Operator, right, d => -d),
                     _ => throw new LoxRuntimeError(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
                 };
             }
@@ -44,22 +44,22 @@ namespace TreeWalk.InterpreterVisitors
             return null;
         }
 
-        private object? _VisitBinary(Binary b)
+        private object? VisitBinary(Binary b)
         {
             var lhs = Evaluate(b.Left);
             var rhs = Evaluate(b.Right);
             return b.Operator.TokenType switch
             {
                 PLUS => VisitBinaryPlus(lhs, rhs, b.Operator),
-                MINUS => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l - r),
-                STAR => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l * r),
-                SLASH => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l / r),
-                GREATER => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l > r),
-                GREATER_EQUAL => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l >= r),
-                LESS => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l < r),
-                LESS_EQUAL => _CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l <= r),
-                BANG_EQUAL => !_IsEqual(lhs, rhs),
-                EQUAL_EQUAL => _IsEqual(lhs, rhs),
+                MINUS => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l - r),
+                STAR => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l * r),
+                SLASH => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l / r),
+                GREATER => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l > r),
+                GREATER_EQUAL => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l >= r),
+                LESS => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l < r),
+                LESS_EQUAL => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l <= r),
+                BANG_EQUAL => !IsEqual(lhs, rhs),
+                EQUAL_EQUAL => IsEqual(lhs, rhs),
                 _ => null
             };
 
@@ -74,14 +74,14 @@ namespace TreeWalk.InterpreterVisitors
             }
         }
 
-        private object? _VisitAssign(Assign expr)
+        private object? VisitAssign(Assign expr)
         {
             var val = Evaluate(expr.Value);
             Lox.GlobalEnvironment.Assign(expr.Name, val);
             return val;
         }
 
-        private static bool _IsTruthy(object? obj)
+        private static bool IsTruthy(object? obj)
         {
             // null is false, bool is its own value, and everything else is true
             return obj switch
@@ -92,7 +92,7 @@ namespace TreeWalk.InterpreterVisitors
             };
         }
 
-        private static double _CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)
+        private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)
         {
             if (operand is double d)
             {
@@ -102,7 +102,7 @@ namespace TreeWalk.InterpreterVisitors
             throw new LoxRuntimeError(op, "Operand must be a number.");
         }
 
-        private static T _CheckOperandsAreNumbers<T>(Token op, object? lhs, object? rhs, Func<double, double, T> binaryHandler)
+        private static T CheckOperandsAreNumbers<T>(Token op, object? lhs, object? rhs, Func<double, double, T> binaryHandler)
         {
             if (lhs is double l && rhs is double r)
             {
@@ -112,7 +112,7 @@ namespace TreeWalk.InterpreterVisitors
             throw new LoxRuntimeError(op, "Operands must be numbers.");
         }
 
-        private static bool _IsEqual(object? lhs, object? rhs)
+        private static bool IsEqual(object? lhs, object? rhs)
         {
             return lhs switch
             {

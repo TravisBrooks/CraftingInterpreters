@@ -1,7 +1,7 @@
 ﻿namespace TreeWalk
 {
-    public interface IVisitor<out T>
+    public interface IVisitor<in TNode, out TResult> where TNode : IAstNode
     {
-        T Visit(IAstNode node);
+        TResult Visit(TNode node);
     }
 }
