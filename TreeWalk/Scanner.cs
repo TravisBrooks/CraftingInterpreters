@@ -140,7 +140,7 @@ namespace Lox
                     }
                     else
                     {
-                        global::Lox.Lox.Error(_line, $"Unexpected character: {c}");
+                        Lox.Error(_line, $"Unexpected character: {c}");
                     }
 
                     break;
@@ -194,7 +194,7 @@ namespace Lox
 
             if (IsAtEnd())
             {
-                global::Lox.Lox.Error(_line, "Unterminated string.");
+                Lox.Error(_line, "Unterminated string.");
                 return;
             }
 
@@ -227,7 +227,7 @@ namespace Lox
             var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
             if (!allowedNextChars.Contains(Peek()))
             {
-                global::Lox.Lox.Error(_line, "Invalid character after number.");
+                Lox.Error(_line, "Invalid character after number.");
                 return;
             }
 

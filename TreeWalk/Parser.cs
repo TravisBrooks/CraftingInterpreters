@@ -411,7 +411,7 @@ namespace Lox
 
         private static ParseError Error(Token token, string errorMessage)
         {
-            global::Lox.Lox.Error(token, errorMessage);
+            Lox.Error(token, errorMessage);
             return new ParseError();
         }
 
