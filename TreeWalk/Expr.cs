@@ -1,7 +1,7 @@
 ﻿// The book goes through this tedious exercise of making a code generator for all the Expr types because java sucks at representing something like record.
 // C# makes it straightforward so no need to do that GenerateAst nonsense.
 
-namespace TreeWalk
+namespace Lox
 {
     public abstract record Expr : IAstNode
     {

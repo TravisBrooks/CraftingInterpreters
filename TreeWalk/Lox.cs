@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace TreeWalk
+namespace Lox
 {
     public static class Lox
     {

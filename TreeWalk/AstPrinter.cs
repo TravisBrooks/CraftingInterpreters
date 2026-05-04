@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace TreeWalk
+namespace Lox
 {
     public class AstPrinter : IVisitor<IAstNode, string>
     {

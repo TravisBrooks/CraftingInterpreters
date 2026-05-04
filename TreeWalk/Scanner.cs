@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
-using static TreeWalk.TokenType;
+using static Lox.TokenType;
 
-namespace TreeWalk
+namespace Lox
 {
     internal class Scanner
     {
@@ -140,7 +140,7 @@ namespace TreeWalk
                     }
                     else
                     {
-                        Lox.Error(_line, $"Unexpected character: {c}");
+                        global::Lox.Lox.Error(_line, $"Unexpected character: {c}");
                     }
 
                     break;
@@ -194,7 +194,7 @@ namespace TreeWalk
 
             if (IsAtEnd())
             {
-                Lox.Error(_line, "Unterminated string.");
+                global::Lox.Lox.Error(_line, "Unterminated string.");
                 return;
             }
 
@@ -227,7 +227,7 @@ namespace TreeWalk
             var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
             if (!allowedNextChars.Contains(Peek()))
             {
-                Lox.Error(_line, "Invalid character after number.");
+                global::Lox.Lox.Error(_line, "Invalid character after number.");
                 return;
             }
 

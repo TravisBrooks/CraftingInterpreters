@@ -1,4 +1,4 @@
-﻿namespace TreeWalk
+﻿namespace Lox
 {
     public class ParseError : Exception
     {

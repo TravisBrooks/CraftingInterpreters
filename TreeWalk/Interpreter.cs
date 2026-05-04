@@ -1,6 +1,6 @@
-﻿using TreeWalk.InterpreterVisitors;
+﻿using Lox.InterpreterVisitors;
 
-namespace TreeWalk
+namespace Lox
 {
     public class Interpreter
     {

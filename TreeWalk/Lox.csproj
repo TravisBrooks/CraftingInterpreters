@@ -5,7 +5,7 @@
 		<TargetFramework>net10.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<AssemblyName>CLox</AssemblyName>
+		<AssemblyName>Lox</AssemblyName>
 	</PropertyGroup>
 
 </Project>

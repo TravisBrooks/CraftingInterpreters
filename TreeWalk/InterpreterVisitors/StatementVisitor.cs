@@ -1,4 +1,4 @@
-﻿namespace TreeWalk.InterpreterVisitors
+﻿namespace Lox.InterpreterVisitors
 {
     public class StatementVisitor : IVisitor<Stmt, Unit>
     {

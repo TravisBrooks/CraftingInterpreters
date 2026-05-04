@@ -1,6 +1,6 @@
-﻿using static TreeWalk.TokenType;
+﻿using static Lox.TokenType;
 
-namespace TreeWalk
+namespace Lox
 {
     // This is the first Lox grammar:
     // expression     → equality ;
@@ -411,7 +411,7 @@ namespace TreeWalk
 
         private static ParseError Error(Token token, string errorMessage)
         {
-            Lox.Error(token, errorMessage);
+            global::Lox.Lox.Error(token, errorMessage);
             return new ParseError();
         }
 

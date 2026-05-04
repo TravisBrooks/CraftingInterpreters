@@ -1,6 +1,6 @@
-﻿using static TreeWalk.TokenType;
+﻿using static Lox.TokenType;
 
-namespace TreeWalk.InterpreterVisitors
+namespace Lox.InterpreterVisitors
 {
     public class ExpressionVisitor : IVisitor<Expr, object?>
     {
