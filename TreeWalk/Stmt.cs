@@ -26,4 +26,8 @@
     public record VarStatement(Token Name, Expr? Initializer) : Stmt;
 
     public record BlockStatement(IEnumerable<Stmt> Statements) : Stmt;
+
+    public record IfStatement(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt;
+
+    public record WhileStatement(Expr Condition, Stmt Body) : Stmt;
 }

@@ -14,6 +14,7 @@ namespace TreeWalk.InterpreterVisitors
                 Binary b => VisitBinary(b),
                 Variable v => Lox.GlobalEnvironment.Get(v.Name),
                 Assign a => VisitAssign(a),
+                Logical l => VisitLogical(l),
                 _ => throw new LoxRuntimeError(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
@@ -26,6 +27,17 @@ namespace TreeWalk.InterpreterVisitors
             }
 
             return expr.Accept(this);
+        }
+
+        internal static bool IsTruthy(object? obj)
+        {
+            // null is false, bool is its own value, and everything else is true
+            return obj switch
+            {
+                null => false,
+                bool b => b,
+                _ => true
+            };
         }
 
         private object? VisitUnary(Unary u)
@@ -81,15 +93,25 @@ namespace TreeWalk.InterpreterVisitors
             return val;
         }
 
-        private static bool IsTruthy(object? obj)
+        private object? VisitLogical(Logical logical)
         {
-            // null is false, bool is its own value, and everything else is true
-            return obj switch
+            var left = Evaluate(logical.Left);
+            if (logical.Operator.TokenType == OR)
             {
-                null => false,
-                bool b => b,
-                _ => true
-            };
+                if (IsTruthy(left))
+                {
+                    return left;
+                }
+            }
+            else
+            {
+                if (!IsTruthy(left))
+                {
+                    return left;
+                }
+            }
+
+            return Evaluate(logical.Right);
         }
 
         private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)

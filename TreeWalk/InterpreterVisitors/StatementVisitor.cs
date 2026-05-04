@@ -12,9 +12,13 @@
                 PrintStatement ps => PrintStmtVisitor(ps.Expression),
                 VarStatement vs => VarStmtVisitor(vs.Name, vs.Initializer),
                 BlockStatement bs => BlockStmtVisitor(bs),
+                IfStatement i => IfStmtVisitor(i),
+                WhileStatement w => WhileStmtVisitor(w),
                 _ => throw new LoxRuntimeError(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
+
+        #region Vistor implementations
 
         private Unit ExprStmtVisitor(Expr expr)
         {
@@ -51,6 +55,30 @@
             ExecuteBlock(bs.Statements);
             return Unit.Value;
         }
+
+        private Unit IfStmtVisitor(IfStatement ifStmt)
+        {
+            if (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(ifStmt.Condition)))
+            {
+                ifStmt.ThenBranch.Accept(this);
+            }
+            else if (ifStmt.ElseBranch is not null)
+            {
+                ifStmt.ElseBranch.Accept(this);
+            }
+            return Unit.Value;
+        }
+
+        private Unit WhileStmtVisitor(WhileStatement whileStatement)
+        {
+            while (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(whileStatement.Condition)))
+            {
+                whileStatement.Body.Accept(this);
+            }
+            return Unit.Value;
+        }
+
+        #endregion
 
         private void ExecuteBlock(IEnumerable<Stmt> statements)
         {

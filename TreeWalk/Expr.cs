@@ -33,4 +33,6 @@ namespace TreeWalk
     public record Variable(Token Name) : Expr;
 
     public record Assign(Token Name, Expr Value) : Expr;
+
+    public record Logical(Expr Left, Token Operator, Expr Right) : Expr;
 }
