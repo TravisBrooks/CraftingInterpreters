@@ -31,5 +31,7 @@
 
     public record WhileStatement(Expr Condition, Stmt Body) : Stmt;
 
-    public record BreakStatement(Token? Keyword) : Stmt;
+    public record BreakStatement : Stmt;
+
+    public record ContinueStatement : Stmt;
 }

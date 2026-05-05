@@ -13,8 +13,9 @@
                 VarStatement vs => VarStmtVisitor(vs.Name, vs.Initializer),
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
-                WhileStatement w => WhileStmtVisitor(w),
-                BreakStatement b => throw new LoxBreakException(),
+                WhileStatement ws => WhileStmtVisitor(ws),
+                BreakStatement => throw new LoxBreakException(),
+                ContinueStatement => throw new LoxContinueException(),
                 _ => throw new LoxRuntimeError(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
@@ -81,6 +82,10 @@
                 catch (LoxBreakException)
                 {
                     break;
+                }
+                catch (LoxContinueException)
+                {
+                    // technically i could call continue here, but that would be redundant since it's the end of the loop body
                 }
             }
             return Unit.Value;

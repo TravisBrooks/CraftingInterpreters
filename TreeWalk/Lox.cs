@@ -14,6 +14,7 @@ namespace Lox
 
         public static int Main(string[] args)
         {
+            args = ["C:\\temp\\Lox\\Test.lox"];
             var timer = new Stopwatch();
             timer.Start();
             if (args.Length > 1)

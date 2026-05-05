@@ -23,7 +23,8 @@ namespace Lox
             ["true"] = TRUE,
             ["var"] = VAR,
             ["while"] = WHILE,
-            ["break"] = BREAK
+            ["break"] = BREAK,
+            ["continue"] = CONTINUE,
         };
 
         private readonly string _source;

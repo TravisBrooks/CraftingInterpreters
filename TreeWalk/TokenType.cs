@@ -48,6 +48,7 @@
         VAR,
         WHILE,
         BREAK,
+        CONTINUE,
 
         EOF
     }

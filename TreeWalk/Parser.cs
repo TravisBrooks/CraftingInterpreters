@@ -15,7 +15,7 @@ namespace Lox
     // In chpt 8 (Statements and State) new grammar rules are introduced:
     // program        → statement* EOF;
     // declaration    → varDecl | statement ;
-    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt ;
+    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt ;
     // exprStmt       → expression ";" ;
     // printStmt      → "print" expression ";" ;
     // block          → "{" declaration* "}" ;
@@ -23,6 +23,7 @@ namespace Lox
     // whileStmt      → "while" "(" expression ")" statement ;
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
     // breakStmt      → "break" ";" ;
+    // continueStmt   → "continue" ";" ;
     public class Parser
     {
         private readonly List<Token> _tokens;
@@ -206,7 +207,7 @@ namespace Lox
             return new VarStatement(name, initializer);
         }
 
-        // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt ;
+        // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt ;
         private Stmt Statement()
         {
             if (Match(FOR))
@@ -228,6 +229,10 @@ namespace Lox
             if (Match(BREAK))
             {
                 return BreakStatement();
+            }
+            if (Match(CONTINUE))
+            {
+                return ContinueStatement();
             }
             
             return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
@@ -316,9 +321,15 @@ namespace Lox
         // breakStmt → "break" ";" ;
         private BreakStatement BreakStatement()
         {
-            var keyword = Previous();
             Consume(SEMICOLON, "Expect ';' after 'break'.");
-            return new BreakStatement(keyword);
+            return new BreakStatement();
+        }
+
+        // continueStmt → "continue" ";" ;
+        private ContinueStatement ContinueStatement()
+        {
+            Consume(SEMICOLON, "Expect ';' after 'continue'.");
+            return new ContinueStatement();
         }
 
         // block → "{" declaration* "}" ;
