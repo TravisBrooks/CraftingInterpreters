@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using Lox.Exception;
+using System.Collections.Immutable;
 using static Lox.TokenType;
 
 namespace Lox
@@ -59,7 +60,7 @@ namespace Lox
             {
                 return Match(VAR) ? VarDeclaration() : Statement();
             }
-            catch (ParseError)
+            catch (ParseException)
             {
                 Synchronize();
                 return null;
@@ -434,10 +435,10 @@ namespace Lox
             throw Error(Peek(), errorMessage);
         }
 
-        private static ParseError Error(Token token, string errorMessage)
+        private static ParseException Error(Token token, string errorMessage)
         {
             Lox.Error(token, errorMessage);
-            return new ParseError();
+            return new ParseException();
         }
 
         /// <summary>

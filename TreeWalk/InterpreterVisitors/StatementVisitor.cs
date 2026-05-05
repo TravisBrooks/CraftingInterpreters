@@ -1,4 +1,6 @@
-﻿namespace Lox.InterpreterVisitors
+﻿using Lox.Exception;
+
+namespace Lox.InterpreterVisitors
 {
     public class StatementVisitor : IVisitor<Stmt, Unit>
     {
@@ -14,9 +16,9 @@
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
                 WhileStatement ws => WhileStmtVisitor(ws),
-                BreakStatement => throw new LoxBreakException(),
-                ContinueStatement => throw new LoxContinueException(),
-                _ => throw new LoxRuntimeError(null, $"Unknown statement type: {stmt.GetType().Name}")
+                BreakStatement => throw new BreakException(),
+                ContinueStatement => throw new ContinueException(),
+                _ => throw new RuntimeException(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
 
@@ -79,11 +81,11 @@
                 {
                     whileStatement.Body.Accept(this);
                 }
-                catch (LoxBreakException)
+                catch (BreakException)
                 {
                     break;
                 }
-                catch (LoxContinueException)
+                catch (ContinueException)
                 {
                     // technically i could call continue here, but that would be redundant since it's the end of the loop body
                 }

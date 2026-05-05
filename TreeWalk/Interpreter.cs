@@ -1,4 +1,5 @@
-﻿using Lox.InterpreterVisitors;
+﻿using Lox.Exception;
+using Lox.InterpreterVisitors;
 
 namespace Lox
 {
@@ -15,7 +16,7 @@ namespace Lox
                     Execute(stmt);
                 }
             }
-            catch (LoxRuntimeError e)
+            catch (RuntimeException e)
             {
                 Lox.RuntimeError(e);
             }

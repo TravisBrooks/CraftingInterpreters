@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using Lox.Exception;
+using System.Diagnostics;
 
 namespace Lox
 {
@@ -60,7 +61,7 @@ namespace Lox
             ReportError(token.Line, whereStr, errorMessage);
         }
 
-        public static void RuntimeError(LoxRuntimeError lre)
+        public static void RuntimeError(RuntimeException lre)
         {
             ReportRuntimeError(lre);
         }
@@ -128,7 +129,7 @@ namespace Lox
             Errors.Add($"ERROR [line {line}] Error{where}: {message}");
         }
 
-        private static void ReportRuntimeError(LoxRuntimeError lre)
+        private static void ReportRuntimeError(RuntimeException lre)
         {
             var lineNumber = lre.Token is null ? "(Unknown)" : lre.Token.Line.ToString();
             RuntimeErrors.Add($"RUNTIME ERROR [line {lineNumber}]: {lre.Message}");

@@ -1,4 +1,6 @@
-﻿namespace Lox
+﻿using Lox.Exception;
+
+namespace Lox
 {
     public class Environment
     {
@@ -41,7 +43,7 @@
                 }
             }
 
-            throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
+            throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
         }
 
         public void Assign(Token name, object? value)
@@ -49,7 +51,7 @@
             var match = _scopedMemoryStack.FirstOrDefault(scope => scope.ContainsKey(name.Lexeme));
             if (match is null)
             {
-                throw new LoxRuntimeError(name, $"Undefined variable '{name.Lexeme}'.");
+                throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
             }
 
             match[name.Lexeme] = value;

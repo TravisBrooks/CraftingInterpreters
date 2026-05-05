@@ -1,4 +1,5 @@
-﻿using static Lox.TokenType;
+﻿using Lox.Exception;
+using static Lox.TokenType;
 
 namespace Lox.InterpreterVisitors
 {
@@ -15,7 +16,7 @@ namespace Lox.InterpreterVisitors
                 Variable v => Lox.GlobalEnvironment.Get(v.Name),
                 Assign a => VisitAssign(a),
                 Logical l => VisitLogical(l),
-                _ => throw new LoxRuntimeError(null, $"Unknown expression type: {expr.GetType().Name}")
+                _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
 
@@ -23,7 +24,7 @@ namespace Lox.InterpreterVisitors
         {
             if (expr is null)
             {
-                throw new LoxRuntimeError(null, "The expression was nil");
+                throw new RuntimeException(null, "The expression was nil");
             }
 
             return expr.Accept(this);
@@ -49,7 +50,7 @@ namespace Lox.InterpreterVisitors
                 {
                     BANG => !IsTruthy(right),
                     MINUS => CheckOperandIsNumber(u.Operator, right, d => -d),
-                    _ => throw new LoxRuntimeError(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
+                    _ => throw new RuntimeException(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
                 };
             }
 
@@ -82,7 +83,7 @@ namespace Lox.InterpreterVisitors
                 {
                     double l when rhs is double r => l + r,
                     string ls when rhs is string rs => ls + rs,
-                    _ => throw new LoxRuntimeError(op, "Operands must be two numbers or two strings.")
+                    _ => throw new RuntimeException(op, "Operands must be two numbers or two strings.")
                 };
             }
         }
@@ -122,7 +123,7 @@ namespace Lox.InterpreterVisitors
                 return unaryHandler(d);
             }
 
-            throw new LoxRuntimeError(op, "Operand must be a number.");
+            throw new RuntimeException(op, "Operand must be a number.");
         }
 
         private static T CheckOperandsAreNumbers<T>(Token op, object? lhs, object? rhs, Func<double, double, T> binaryHandler)
@@ -132,7 +133,7 @@ namespace Lox.InterpreterVisitors
                 return binaryHandler(l, r);
             }
 
-            throw new LoxRuntimeError(op, "Operands must be numbers.");
+            throw new RuntimeException(op, "Operands must be numbers.");
         }
 
         private static bool IsEqual(object? lhs, object? rhs)
