@@ -1,4 +1,5 @@
-﻿using static Lox.TokenType;
+﻿using System.Collections.Immutable;
+using static Lox.TokenType;
 
 namespace Lox
 {
@@ -14,13 +15,14 @@ namespace Lox
     // In chpt 8 (Statements and State) new grammar rules are introduced:
     // program        → statement* EOF;
     // declaration    → varDecl | statement ;
-    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt;
+    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt ;
     // exprStmt       → expression ";" ;
     // printStmt      → "print" expression ";" ;
     // block          → "{" declaration* "}" ;
     // ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
     // whileStmt      → "while" "(" expression ")" statement ;
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
+    // breakStmt      → "break" ";" ;
     public class Parser
     {
         private readonly List<Token> _tokens;
@@ -32,7 +34,7 @@ namespace Lox
             _current = 0;
         }
 
-        public IEnumerable<Stmt> Parse()
+        public ImmutableList<Stmt> Parse()
         {
             var statements = new List<Stmt>();
             while (!IsAtEnd())
@@ -44,7 +46,7 @@ namespace Lox
                 }
             }
 
-            return statements;
+            return statements.ToImmutableList();
         }
 
         #region Lox grammar implementation
@@ -204,7 +206,7 @@ namespace Lox
             return new VarStatement(name, initializer);
         }
 
-        // statement → exprStmt | printStmt | block ;
+        // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt ;
         private Stmt Statement()
         {
             if (Match(FOR))
@@ -223,7 +225,11 @@ namespace Lox
             {
                 return WhileStatement();
             }
-
+            if (Match(BREAK))
+            {
+                return BreakStatement();
+            }
+            
             return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
         }
 
@@ -305,6 +311,14 @@ namespace Lox
             Consume(RIGHT_PAREN, "Expect ')' after condition.");
             var body = Statement();
             return new WhileStatement(condition, body);
+        }
+
+        // breakStmt → "break" ";" ;
+        private BreakStatement BreakStatement()
+        {
+            var keyword = Previous();
+            Consume(SEMICOLON, "Expect ';' after 'break'.");
+            return new BreakStatement(keyword);
         }
 
         // block → "{" declaration* "}" ;

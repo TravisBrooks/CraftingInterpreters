@@ -30,4 +30,6 @@
     public record IfStatement(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt;
 
     public record WhileStatement(Expr Condition, Stmt Body) : Stmt;
+
+    public record BreakStatement(Token? Keyword) : Stmt;
 }

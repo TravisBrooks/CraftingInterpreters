@@ -47,6 +47,7 @@
         TRUE,
         VAR,
         WHILE,
+        BREAK,
 
         EOF
     }

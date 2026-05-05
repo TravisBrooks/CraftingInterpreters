@@ -22,7 +22,8 @@ namespace Lox
             ["this"] = THIS,
             ["true"] = TRUE,
             ["var"] = VAR,
-            ["while"] = WHILE
+            ["while"] = WHILE,
+            ["break"] = BREAK
         };
 
         private readonly string _source;
@@ -38,7 +39,7 @@ namespace Lox
             _line = 1;
         }
 
-        public IList<Token> ScanTokens()
+        public ImmutableList<Token> ScanTokens()
         {
             while (!IsAtEnd())
             {

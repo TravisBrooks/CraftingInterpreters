@@ -14,6 +14,7 @@
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
                 WhileStatement w => WhileStmtVisitor(w),
+                BreakStatement b => throw new LoxBreakException(),
                 _ => throw new LoxRuntimeError(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
@@ -73,7 +74,14 @@
         {
             while (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(whileStatement.Condition)))
             {
-                whileStatement.Body.Accept(this);
+                try
+                {
+                    whileStatement.Body.Accept(this);
+                }
+                catch (LoxBreakException)
+                {
+                    break;
+                }
             }
             return Unit.Value;
         }

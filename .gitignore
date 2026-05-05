@@ -362,3 +362,6 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /TreeWalk/.idea/.idea.TreeWalk/.idea
+/TreeWalk/.idea/.idea.CraftingInterpreters/.idea/.gitignore
+/TreeWalk/.idea/.idea.CraftingInterpreters/.idea/encodings.xml
+/TreeWalk/.idea/.idea.CraftingInterpreters/.idea
