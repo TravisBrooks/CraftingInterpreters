@@ -8,7 +8,7 @@ namespace Lox
     // equality       → comparison(( "!=" | "==" ) comparison )* ;
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )* ;
     // term           → factor(( "-" | "+" ) factor )* ;
-    // factor         → unary(( "/" | "*" ) unary )* ;
+    // factor         → unary(( "/" | "*" | "%" ) unary )* ;
     // unary          → ( "!" | "-" ) unary | primary ;
     // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" ;
     //
@@ -136,10 +136,10 @@ namespace Lox
             return RecursiveBinaryExprBuilder(Factor, MINUS, PLUS);
         }
 
-        // factor → unary(( "/" | "*" ) unary )* ;
+        // factor → unary(( "/" | "*" | "%" ) unary )* ;
         private Expr Factor()
         {
-            return RecursiveBinaryExprBuilder(Unary, SLASH, STAR);
+            return RecursiveBinaryExprBuilder(Unary, SLASH, STAR, MODULO);
         }
 
         // unary → ( "!" | "-" ) unary | primary ;

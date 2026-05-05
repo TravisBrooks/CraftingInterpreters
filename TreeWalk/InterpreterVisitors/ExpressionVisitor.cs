@@ -65,6 +65,7 @@ namespace Lox.InterpreterVisitors
                 PLUS => VisitBinaryPlus(lhs, rhs, b.Operator),
                 MINUS => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l - r),
                 STAR => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l * r),
+                MODULO => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l % r),
                 SLASH => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l / r),
                 GREATER => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l > r),
                 GREATER_EQUAL => CheckOperandsAreNumbers(b.Operator, lhs, rhs, (l, r) => l >= r),

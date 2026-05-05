@@ -93,6 +93,9 @@ namespace Lox
                 case '*':
                     AddToken(STAR);
                     break;
+                case '%':
+                    AddToken(MODULO);
+                    break;
                 case '!':
                     AddToken(Match('=') ? BANG_EQUAL : BANG);
                     break;
