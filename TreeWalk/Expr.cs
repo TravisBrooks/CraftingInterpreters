@@ -35,4 +35,6 @@ namespace Lox
     public record Assign(Token Name, Expr Value) : Expr;
 
     public record Logical(Expr Left, Token Operator, Expr Right) : Expr;
+
+    public record Call(Expr Callee, Token Paren, IEnumerable<Expr> Arguments) : Expr;
 }

@@ -1,4 +1,5 @@
-﻿using Lox.Exception;
+﻿using Lox.Callable;
+using Lox.Exception;
 using System.Diagnostics;
 
 namespace Lox
@@ -9,12 +10,14 @@ namespace Lox
         private static readonly List<string> RuntimeErrors = [];
         private static readonly Interpreter Interpreter = new();
 
-        public static Environment GlobalEnvironment { get; } = new();
+        public static Environment Environment { get; set; } = new();
 
         #region Public interface
 
         public static int Main(string[] args)
         {
+            Environment.DefineGlobal("clock", new Clock());
+
             var timer = new Stopwatch();
             timer.Start();
             if (args.Length > 1)
@@ -73,7 +76,7 @@ namespace Lox
         private static void RunFile(string pathToScript)
         {
             var source = File.ReadAllText(pathToScript);
-            GlobalEnvironment.LoxMode = LoxMode.SCRIPT_MODE;
+            Environment.LoxMode = LoxMode.SCRIPT_MODE;
             Run(source);
         }
 
@@ -94,7 +97,7 @@ namespace Lox
 
         private static void RunPrompt()
         {
-            GlobalEnvironment.LoxMode = LoxMode.INTERACTIVE_MODE;
+            Environment.LoxMode = LoxMode.INTERACTIVE_MODE;
             using var reader = new StreamReader(Console.OpenStandardInput());
             while (true)
             {

@@ -12,6 +12,14 @@ namespace Lox
             _scopedMemoryStack.Push(new Dictionary<string, object?>(StringComparer.Ordinal));
         }
 
+        private Environment(Environment original)
+        {
+            _scopedMemoryStack = new Stack<Dictionary<string, object?>>(original._scopedMemoryStack.Reverse());
+            LoxMode = original.LoxMode;
+        }
+
+        public Environment Clone() => new(this);
+
         public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
 
         public void EnterInnerScope()
@@ -28,9 +36,16 @@ namespace Lox
             }
         }
 
+        private Dictionary<string, object?> GlobalScope => _scopedMemoryStack.Last();
+
         public void Define(string name, object? value)
         {
             CurrentScope[name] = value;
+        }
+
+        public void DefineGlobal(string name, object? value)
+        {
+            GlobalScope[name] = value;
         }
 
         public object? Get(Token name)

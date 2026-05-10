@@ -4,19 +4,23 @@ using static Lox.TokenType;
 
 namespace Lox
 {
-    // This is the first Lox grammar:
+    // Lox grammar (expressions):
     // expression     → equality ;
     // equality       → comparison(( "!=" | "==" ) comparison )* ;
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )* ;
     // term           → factor(( "-" | "+" ) factor )* ;
     // factor         → unary(( "/" | "*" | "%" ) unary )* ;
-    // unary          → ( "!" | "-" ) unary | primary ;
+    // unary          → ( "!" | "-" ) unary | call ;
+    // call           → primary ( "(" arguments? ")" )* ;
     // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" ;
+    // arguments      → expression ( "," expression )* ;
     //
-    // In chpt 8 (Statements and State) new grammar rules are introduced:
+    // Lox grammar (statements):
     // program        → statement* EOF;
-    // declaration    → varDecl | statement ;
-    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt ;
+    // declaration    → funDecl | varDecl | statement ;
+    // funDecl        → "fun" function ;
+    // function        → IDENTIFIER "(" parameters? ")" block ;
+    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt | returnStmt ;
     // exprStmt       → expression ";" ;
     // printStmt      → "print" expression ";" ;
     // block          → "{" declaration* "}" ;
@@ -25,8 +29,10 @@ namespace Lox
     // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
     // breakStmt      → "break" ";" ;
     // continueStmt   → "continue" ";" ;
+    // returnStmt     → "return" expression? ";" ;
     public class Parser
     {
+        private const int MaxArgCount = 255;
         private readonly List<Token> _tokens;
         private int _current;
 
@@ -53,18 +59,99 @@ namespace Lox
 
         #region Lox grammar implementation
 
-        // declaration → varDecl | statement ;
+        // declaration → funDecl | varDecl | statement ;
         private Stmt? Declaration()
         {
             try
             {
-                return Match(VAR) ? VarDeclaration() : Statement();
+                if (Match(FUN))
+                {
+                    return FunDeclaration("function");
+                }
+                if (Match(VAR))
+                {
+                    return VarDeclaration();
+                }
+                return Statement();
             }
             catch (ParseException)
             {
                 Synchronize();
                 return null;
             }
+        }
+
+        // funDecl → "fun" function ;
+        private FunctionStatement FunDeclaration(string kind)
+        {
+            var name = Consume(IDENTIFIER, $"Expect {kind} name.");
+            _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+            var parameters = new List<Token>();
+            if (!Check(RIGHT_PAREN))
+            {
+                do
+                {
+                    if (parameters.Count >= MaxArgCount)
+                    {
+                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} parameters.");
+                    }
+                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
+                }
+                while (Match(COMMA));
+            }
+            _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
+            _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+            var body = BlockStatement();
+            return new FunctionStatement(name, parameters, body);
+        }
+
+        // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+        private VarStatement VarDeclaration()
+        {
+            var name = Consume(IDENTIFIER, "Expect variable name.");
+            Expr? initializer = null;
+            if (Match(EQUAL))
+            {
+                initializer = Expression();
+            }
+
+            _ = Consume(SEMICOLON, "Expect ';' after variable declaration.");
+            return new VarStatement(name, initializer);
+        }
+
+        // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt| returnStmt ;
+        private Stmt Statement()
+        {
+            if (Match(FOR))
+            {
+                return ForStatement();
+            }
+            if (Match(IF))
+            {
+                return IfStatement();
+            }
+            if (Match(PRINT))
+            {
+                return PrintStatement();
+            }
+            if (Match(WHILE))
+            {
+                return WhileStatement();
+            }
+            if (Match(BREAK))
+            {
+                return BreakStatement();
+            }
+            if (Match(CONTINUE))
+            {
+                return ContinueStatement();
+            }
+            if (Match(RETURN))
+            {
+                return ReturnStatement();
+            }
+
+            return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
         }
 
         // expression → assignment ;
@@ -153,7 +240,44 @@ namespace Lox
                 return new Unary(op, rightExpr);
             }
 
-            return Primary();
+            return Call();
+        }
+
+        // call → primary ( "(" arguments? ")" )* ;
+        private Expr Call()
+        {
+            var expr = Primary();
+            while (true)
+            {
+                if (Match(LEFT_PAREN))
+                {
+                    expr = FinishCall(expr);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            return expr;
+        }
+
+        private Call FinishCall(Expr callee)
+        {
+            var arguments = new List<Expr>();
+            if(!Check(RIGHT_PAREN))
+            {
+                do
+                {
+                    if (arguments.Count >= MaxArgCount)
+                    {
+                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} arguments.");
+                    }
+                    arguments.Add(Expression());
+                }
+                while (Match(COMMA));
+            }
+            var paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
+            return new Call(callee, paren, arguments);
         }
 
         // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER ;
@@ -194,51 +318,6 @@ namespace Lox
             throw Error(Peek(), "Expect expression.");
         }
 
-        // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-        private Stmt VarDeclaration()
-        {
-            var name = Consume(IDENTIFIER, "Expect variable name.");
-            Expr? initializer = null;
-            if (Match(EQUAL))
-            {
-                initializer = Expression();
-            }
-
-            _ = Consume(SEMICOLON, "Expect ';' after variable declaration.");
-            return new VarStatement(name, initializer);
-        }
-
-        // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt ;
-        private Stmt Statement()
-        {
-            if (Match(FOR))
-            {
-                return ForStatement();
-            }
-            if (Match(IF))
-            {
-                return IfStatement();
-            }
-            if (Match(PRINT))
-            {
-                return PrintStatement();
-            }
-            if (Match(WHILE))
-            {
-                return WhileStatement();
-            }
-            if (Match(BREAK))
-            {
-                return BreakStatement();
-            }
-            if (Match(CONTINUE))
-            {
-                return ContinueStatement();
-            }
-            
-            return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
-        }
-
         // forStmt → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;        
         private Stmt ForStatement()
         {
@@ -272,7 +351,7 @@ namespace Lox
             var body = Statement();
             if (increment is not null)
             {
-                body = new BlockStatement(new List<Stmt> { body, new ExprStatement(increment) });
+                body = new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
             }
 
             condition ??= new Literal(true);
@@ -280,7 +359,7 @@ namespace Lox
 
             if (initializer is not null)
             {
-                body = new BlockStatement(new List<Stmt> { initializer, body });
+                body = new BlockStatement((List<Stmt>)[initializer, body]);
             }
 
             return body;
@@ -331,6 +410,19 @@ namespace Lox
         {
             Consume(SEMICOLON, "Expect ';' after 'continue'.");
             return new ContinueStatement();
+        }
+
+        // returnStmt → "return" expression? ";" ;
+        private ReturnStatement ReturnStatement()
+        {
+            var keyword = Previous();
+            Expr? value = null;
+            if (!Check(SEMICOLON))
+            {
+                value = Expression();
+            }
+            _ = Consume(SEMICOLON, "Expect ';' after return value.");
+            return new ReturnStatement(keyword, value);
         }
 
         // block → "{" declaration* "}" ;

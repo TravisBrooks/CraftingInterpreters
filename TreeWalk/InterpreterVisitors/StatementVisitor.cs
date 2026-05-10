@@ -1,10 +1,11 @@
-﻿using Lox.Exception;
+﻿using Lox.Callable;
+using Lox.Exception;
 
 namespace Lox.InterpreterVisitors
 {
     public class StatementVisitor : IVisitor<Stmt, Unit>
     {
-        private readonly ExpressionVisitor _expressionVisitor = new();
+        private readonly Lazy<ExpressionVisitor> _expressionVisitor = new(() => new ExpressionVisitor());
 
         public Unit Visit(Stmt stmt)
         {
@@ -18,6 +19,8 @@ namespace Lox.InterpreterVisitors
                 WhileStatement ws => WhileStmtVisitor(ws),
                 BreakStatement => throw new BreakException(),
                 ContinueStatement => throw new ContinueException(),
+                FunctionStatement fs => FuncStmtVisitor(fs),
+                ReturnStatement rs => throw new ReturnException(_expressionVisitor.Value.Evaluate(rs.Value)),
                 _ => throw new RuntimeException(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
@@ -26,8 +29,8 @@ namespace Lox.InterpreterVisitors
 
         private Unit ExprStmtVisitor(Expr expr)
         {
-            var exprVal = _expressionVisitor.Evaluate(expr);
-            if (Lox.GlobalEnvironment.LoxMode == LoxMode.INTERACTIVE_MODE)
+            var exprVal = _expressionVisitor.Value.Evaluate(expr);
+            if (Lox.Environment.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
                 Console.WriteLine(Stringify(exprVal));
             }
@@ -37,7 +40,7 @@ namespace Lox.InterpreterVisitors
 
         private Unit PrintStmtVisitor(Expr expr)
         {
-            var val = _expressionVisitor.Evaluate(expr);
+            var val = _expressionVisitor.Value.Evaluate(expr);
             Console.WriteLine(Stringify(val));
             return Unit.Value;
         }
@@ -47,10 +50,10 @@ namespace Lox.InterpreterVisitors
             object? val = null;
             if (initializer is not null)
             {
-                val = _expressionVisitor.Evaluate(initializer);
+                val = _expressionVisitor.Value.Evaluate(initializer);
             }
 
-            Lox.GlobalEnvironment.Define(name.Lexeme, val);
+            Lox.Environment.Define(name.Lexeme, val);
             return Unit.Value;
         }
 
@@ -62,7 +65,7 @@ namespace Lox.InterpreterVisitors
 
         private Unit IfStmtVisitor(IfStatement ifStmt)
         {
-            if (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(ifStmt.Condition)))
+            if (ExpressionVisitor.IsTruthy(_expressionVisitor.Value.Evaluate(ifStmt.Condition)))
             {
                 ifStmt.ThenBranch.Accept(this);
             }
@@ -75,7 +78,7 @@ namespace Lox.InterpreterVisitors
 
         private Unit WhileStmtVisitor(WhileStatement whileStatement)
         {
-            while (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(whileStatement.Condition)))
+            while (ExpressionVisitor.IsTruthy(_expressionVisitor.Value.Evaluate(whileStatement.Condition)))
             {
                 try
                 {
@@ -93,13 +96,20 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
+        private Unit FuncStmtVisitor(FunctionStatement fs)
+        {
+            var fn = new LoxFunction(fs);
+            Lox.Environment.Define(fs.Name.Lexeme, fn);
+            return Unit.Value;
+        }
+
         #endregion
 
         private void ExecuteBlock(IEnumerable<Stmt> statements)
         {
             try
             {
-                Lox.GlobalEnvironment.EnterInnerScope();
+                Lox.Environment.EnterInnerScope();
                 foreach (var stmt in statements)
                 {
                     stmt.Accept(this);
@@ -107,7 +117,7 @@ namespace Lox.InterpreterVisitors
             }
             finally
             {
-                Lox.GlobalEnvironment.ExitInnerScope();
+                Lox.Environment.ExitInnerScope();
             }
         }
 

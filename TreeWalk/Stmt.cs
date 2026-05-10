@@ -34,4 +34,8 @@
     public record BreakStatement : Stmt;
 
     public record ContinueStatement : Stmt;
+
+    public record FunctionStatement(Token Name, IList<Token> Parameters, BlockStatement Body) : Stmt;
+
+    public record ReturnStatement(Token Keyword, Expr? Value) : Stmt;
 }

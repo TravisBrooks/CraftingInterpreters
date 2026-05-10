@@ -1,10 +1,13 @@
-﻿using Lox.Exception;
+﻿using Lox.Callable;
+using Lox.Exception;
 using static Lox.TokenType;
 
 namespace Lox.InterpreterVisitors
 {
     public class ExpressionVisitor : IVisitor<Expr, object?>
     {
+        private readonly Lazy<StatementVisitor> _statementVisitor = new(() => new StatementVisitor());
+
         public object? Visit(Expr expr)
         {
             return expr switch
@@ -13,9 +16,10 @@ namespace Lox.InterpreterVisitors
                 Grouping g => Evaluate(g.Expression),
                 Unary u => VisitUnary(u),
                 Binary b => VisitBinary(b),
-                Variable v => Lox.GlobalEnvironment.Get(v.Name),
+                Variable v => Lox.Environment.Get(v.Name),
                 Assign a => VisitAssign(a),
                 Logical l => VisitLogical(l),
+                Call c => VisitCall(c),
                 _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
@@ -91,7 +95,7 @@ namespace Lox.InterpreterVisitors
         private object? VisitAssign(Assign expr)
         {
             var val = Evaluate(expr.Value);
-            Lox.GlobalEnvironment.Assign(expr.Name, val);
+            Lox.Environment.Assign(expr.Name, val);
             return val;
         }
 
@@ -114,6 +118,21 @@ namespace Lox.InterpreterVisitors
             }
 
             return Evaluate(logical.Right);
+        }
+
+        private object? VisitCall(Call call)
+        {
+            var callee = Evaluate(call.Callee);
+            var arguments = call.Arguments.Select(Evaluate).ToList();
+            if (callee is ICallable fn)
+            {
+                if (arguments.Count != fn.Arity())
+                {
+                    throw new RuntimeException(call.Paren, $"Expected {fn.Arity()} arguments but got {arguments.Count}.");
+                }
+                return fn.Call(_statementVisitor.Value, arguments);
+            }
+            throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }
 
         private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)
