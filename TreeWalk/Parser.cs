@@ -12,14 +12,14 @@ namespace Lox
     // factor         → unary(( "/" | "*" | "%" ) unary )* ;
     // unary          → ( "!" | "-" ) unary | call ;
     // call           → primary ( "(" arguments? ")" )* ;
-    // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" ;
+    // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | fnExpression ;
     // arguments      → expression ( "," expression )* ;
+    // fnExpression   → "(" parameters? ")" block ;
     //
     // Lox grammar (statements):
     // program        → statement* EOF;
     // declaration    → funDecl | varDecl | statement ;
-    // funDecl        → "fun" function ;
-    // function        → IDENTIFIER "(" parameters? ")" block ;
+    // funDecl        → "fun" IDENTIFIER fnExpression ;
     // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt | returnStmt ;
     // exprStmt       → expression ";" ;
     // printStmt      → "print" expression ";" ;
@@ -64,7 +64,8 @@ namespace Lox
         {
             try
             {
-                if (Match(FUN))
+                // the match on FUN is true it advances _current so to check if the next thing is an identifier we need to peek
+                if (Match(FUN) && Peek().TokenType == IDENTIFIER)
                 {
                     return FunDeclaration("function");
                 }
@@ -81,10 +82,17 @@ namespace Lox
             }
         }
 
-        // funDecl → "fun" function ;
+        // funDecl → "fun" IDENTIFIER fnExpression ;
         private FunctionStatement FunDeclaration(string kind)
         {
             var name = Consume(IDENTIFIER, $"Expect {kind} name.");
+            var fnExpr = FnExpression(kind);
+            return new FunctionStatement(name, fnExpr);
+        }
+
+        // fnExpression → "(" parameters? ")" block ;
+        private FuncExpr FnExpression(string kind)
+        {
             _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
             var parameters = new List<Token>();
             if (!Check(RIGHT_PAREN))
@@ -102,7 +110,7 @@ namespace Lox
             _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
             _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
             var body = BlockStatement();
-            return new FunctionStatement(name, parameters, body);
+            return new FuncExpr(parameters, body);
         }
 
         // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -280,9 +288,14 @@ namespace Lox
             return new Call(callee, paren, arguments);
         }
 
-        // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER ;
+        // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER | fnExpression ;
         private Expr Primary()
         {
+            if (Match(FUN))
+            {
+                return FnExpression("function");
+            }
+
             if (Match(FALSE))
             {
                 return new Literal(false);

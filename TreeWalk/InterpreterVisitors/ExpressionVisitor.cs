@@ -20,6 +20,7 @@ namespace Lox.InterpreterVisitors
                 Assign a => VisitAssign(a),
                 Logical l => VisitLogical(l),
                 Call c => VisitCall(c),
+                FuncExpr f => VisitFuncExpr(f),
                 _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
@@ -133,6 +134,11 @@ namespace Lox.InterpreterVisitors
                 return fn.Call(_statementVisitor.Value, arguments);
             }
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
+        }
+
+        private object? VisitFuncExpr(FuncExpr funcExpr)
+        {
+            return new LoxFunction(null, funcExpr);
         }
 
         private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)

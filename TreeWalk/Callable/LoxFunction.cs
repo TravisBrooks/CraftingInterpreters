@@ -5,11 +5,13 @@ namespace Lox.Callable
 {
     public class LoxFunction : ICallable
     {
-        private readonly FunctionStatement _declaration;
+        private readonly string? _name;
+        private readonly FuncExpr _declaration;
         private readonly Environment _closure;
 
-        public LoxFunction(FunctionStatement declaration)
+        public LoxFunction(string? name, FuncExpr declaration)
         {
+            _name = name;
             _declaration = declaration;
             _closure = Lox.Environment.Clone();
         }
@@ -80,10 +82,12 @@ namespace Lox.Callable
             return _declaration.Parameters.Count;
         }
 
+        public string? Name => _name;
+
         public override string ToString()
         {
             var paramStr = string.Join(", ", _declaration.Parameters.Select(tkn => tkn.Lexeme));
-            return $"<fn {_declaration.Name.Lexeme}({paramStr})>";
+            return $"<fn {_name ?? "[lambda]"}({paramStr})>";
         }
     }
 }

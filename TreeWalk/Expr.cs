@@ -37,4 +37,6 @@ namespace Lox
     public record Logical(Expr Left, Token Operator, Expr Right) : Expr;
 
     public record Call(Expr Callee, Token Paren, IEnumerable<Expr> Arguments) : Expr;
+
+    public record FuncExpr(IList<Token> Parameters, BlockStatement Body) : Expr;
 }

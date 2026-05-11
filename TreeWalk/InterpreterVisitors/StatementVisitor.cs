@@ -98,8 +98,9 @@ namespace Lox.InterpreterVisitors
 
         private Unit FuncStmtVisitor(FunctionStatement fs)
         {
-            var fn = new LoxFunction(fs);
-            Lox.Environment.Define(fs.Name.Lexeme, fn);
+            var fnName = fs.Name.Lexeme;
+            var fn = new LoxFunction(fnName, fs.FuncExpr);
+            Lox.Environment.Define(fnName, fn);
             return Unit.Value;
         }
 
