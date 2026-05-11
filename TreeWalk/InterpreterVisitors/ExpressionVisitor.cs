@@ -86,9 +86,11 @@ namespace Lox.InterpreterVisitors
             {
                 return lhs switch
                 {
-                    double l when rhs is double r => l + r,
+                    double ls when rhs is double rs => ls + rs,
                     string ls when rhs is string rs => ls + rs,
-                    _ => throw new RuntimeException(op, "Operands must be two numbers or two strings.")
+                    double ls when rhs is string rs => ls + rs,
+                    string ls when rhs is double rs => ls + rs,
+                    _ => throw new RuntimeException(op, "Operands must be numbers or strings.")
                 };
             }
         }
