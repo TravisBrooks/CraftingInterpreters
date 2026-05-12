@@ -4,8 +4,31 @@ using static Lox.TokenType;
 
 namespace Lox
 {
-    // Lox grammar (expressions):
+    // Lox grammar (I altered the definition from the book of funDecl and added fnExpression when I added lambdas):
+    //
+    // Rule that matches an entire Lox program:
+    // program        → declaration* EOF ;
+    //
+    // DECLARATIONS:
+    // declaration    → funDecl | varDecl | statement ;
+    // funDecl        → "fun" IDENTIFIER fnExpression ;
+    // varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
+    //
+    // STATEMENTS:
+    // statement      → exprStmt | forStmt | ifStmt | printStmt | returnStmt | whileStmt | breakStmt | continueStmt | block ;
+    // exprStmt       → expression ";" ;
+    // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
+    // ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
+    // printStmt      → "print" expression ";" ;
+    // returnStmt     → "return" expression? ";" ;
+    // whileStmt      → "while" "(" expression ")" statement ;
+    // breakStmt      → "break" ";" ;
+    // continueStmt   → "continue" ";" ;
+    // block          → "{" declaration* "}" ;
+    //
+    // EXPRESSIONS:
     // expression     → equality ;
+    // assignment     → ( call "." )? IDENTIFIER "=" assignment | logic_or ;
     // equality       → comparison(( "!=" | "==" ) comparison )* ;
     // comparison     → term(( ">" | ">=" | "<" | "<=" ) term )* ;
     // term           → factor(( "-" | "+" ) factor )* ;
@@ -15,21 +38,7 @@ namespace Lox
     // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | fnExpression ;
     // arguments      → expression ( "," expression )* ;
     // fnExpression   → "(" parameters? ")" block ;
-    //
-    // Lox grammar (statements):
-    // program        → statement* EOF;
-    // declaration    → funDecl | varDecl | statement ;
-    // funDecl        → "fun" IDENTIFIER fnExpression ;
-    // statement      → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt | returnStmt ;
-    // exprStmt       → expression ";" ;
-    // printStmt      → "print" expression ";" ;
-    // block          → "{" declaration* "}" ;
-    // ifStmt         → "if" "(" expression ")" statement ( "else" statement )? ;
-    // whileStmt      → "while" "(" expression ")" statement ;
-    // forStmt        → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;
-    // breakStmt      → "break" ";" ;
-    // continueStmt   → "continue" ";" ;
-    // returnStmt     → "return" expression? ";" ;
+    // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
     public class Parser
     {
         private const int MaxArgCount = 255;
@@ -44,20 +53,25 @@ namespace Lox
 
         public ImmutableList<Stmt> Parse()
         {
-            var statements = new List<Stmt>();
+            return Program().ToImmutableList();
+        }
+
+        #region Lox grammar implementation
+
+        // program → declaration* EOF ;
+        private IEnumerable<Stmt> Program()
+        {
             while (!IsAtEnd())
             {
                 var decl = Declaration();
                 if (decl is not null)
                 {
-                    statements.Add(decl);
+                    yield return decl;
                 }
             }
-
-            return statements.ToImmutableList();
         }
 
-        #region Lox grammar implementation
+        #region Declarations
 
         // declaration → funDecl | varDecl | statement ;
         private Stmt? Declaration()
@@ -83,38 +97,15 @@ namespace Lox
         }
 
         // funDecl → "fun" IDENTIFIER fnExpression ;
-        private FunctionStatement FunDeclaration(string kind)
+        private FunctionDeclaration FunDeclaration(string kind)
         {
             var name = Consume(IDENTIFIER, $"Expect {kind} name.");
             var fnExpr = FnExpression(kind);
-            return new FunctionStatement(name, fnExpr);
-        }
-
-        // fnExpression → "(" parameters? ")" block ;
-        private FuncExpr FnExpression(string kind)
-        {
-            _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
-            var parameters = new List<Token>();
-            if (!Check(RIGHT_PAREN))
-            {
-                do
-                {
-                    if (parameters.Count >= MaxArgCount)
-                    {
-                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} parameters.");
-                    }
-                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
-                }
-                while (Match(COMMA));
-            }
-            _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
-            _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
-            var body = BlockStatement();
-            return new FuncExpr(parameters, body);
+            return new FunctionDeclaration(name, fnExpr);
         }
 
         // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-        private VarStatement VarDeclaration()
+        private VarDeclaration VarDeclaration()
         {
             var name = Consume(IDENTIFIER, "Expect variable name.");
             Expr? initializer = null;
@@ -124,8 +115,12 @@ namespace Lox
             }
 
             _ = Consume(SEMICOLON, "Expect ';' after variable declaration.");
-            return new VarStatement(name, initializer);
+            return new VarDeclaration(name, initializer);
         }
+
+        #endregion
+
+        #region Statements
 
         // statement → exprStmt | printStmt | block | ifStmt | whileStmt | forStmt | breakStmt | continueStmt| returnStmt ;
         private Stmt Statement()
@@ -162,6 +157,142 @@ namespace Lox
             return Match(LEFT_BRACE) ? BlockStatement() : ExpressionStatement();
         }
 
+        // exprStmt → expression ";" ;
+        private ExprStatement ExpressionStatement()
+        {
+            var val = Expression();
+            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            return new ExprStatement(val);
+        }
+
+        // printStmt → "print" expression ";" ;
+        private PrintStatement PrintStatement()
+        {
+            var val = Expression();
+            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            return new PrintStatement(val);
+        }
+
+        // block → "{" declaration* "}" ;
+        private BlockStatement BlockStatement()
+        {
+            var statements = new List<Stmt>();
+            while (!Check(RIGHT_BRACE) && !IsAtEnd())
+            {
+                var declaration = Declaration();
+                if (declaration is not null)
+                {
+                    statements.Add(declaration);
+                }
+            }
+
+            Consume(RIGHT_BRACE, "Expect '}' after block.");
+            return new BlockStatement(statements);
+        }
+
+        // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
+        private IfStatement IfStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'if'.");
+            var condition = Expression();
+            Consume(RIGHT_PAREN, "Expect ')' after if condition.");
+            var thenBranch = Statement();
+            Stmt? elseBranch = null;
+            if (Match(ELSE))
+            {
+                elseBranch = Statement();
+            }
+            return new IfStatement(condition, thenBranch, elseBranch);
+        }
+
+        // whileStmt → "while" "(" expression ")" statement ;
+        private WhileStatement WhileStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'while'.");
+            var condition = Expression();
+            Consume(RIGHT_PAREN, "Expect ')' after condition.");
+            var body = Statement();
+            return new WhileStatement(condition, body);
+        }
+
+        // forStmt → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;        
+        private Stmt ForStatement()
+        {
+            Consume(LEFT_PAREN, "Expect '(' after 'for'.");
+            Stmt? initializer;
+            if (Match(SEMICOLON))
+            {
+                initializer = null;
+            }
+            else if (Match(VAR))
+            {
+                initializer = VarDeclaration();
+            }
+            else
+            {
+                initializer = ExpressionStatement();
+            }
+
+            Expr? condition = null;
+            if (!Check(RIGHT_PAREN))
+            {
+                condition = Expression();
+            }
+            Consume(SEMICOLON, "Expect ';' after loop condition.");
+            Expr? increment = null;
+            if (!Check(RIGHT_PAREN))
+            {
+                increment = Expression();
+            }
+            Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+            var body = Statement();
+            if (increment is not null)
+            {
+                body = new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
+            }
+
+            condition ??= new Literal(true);
+            body = new WhileStatement(condition, body);
+
+            if (initializer is not null)
+            {
+                body = new BlockStatement((List<Stmt>)[initializer, body]);
+            }
+
+            return body;
+        }
+
+        // breakStmt → "break" ";" ;
+        private BreakStatement BreakStatement()
+        {
+            Consume(SEMICOLON, "Expect ';' after 'break'.");
+            return new BreakStatement();
+        }
+
+        // continueStmt → "continue" ";" ;
+        private ContinueStatement ContinueStatement()
+        {
+            Consume(SEMICOLON, "Expect ';' after 'continue'.");
+            return new ContinueStatement();
+        }
+
+        // returnStmt → "return" expression? ";" ;
+        private ReturnStatement ReturnStatement()
+        {
+            var keyword = Previous();
+            Expr? value = null;
+            if (!Check(SEMICOLON))
+            {
+                value = Expression();
+            }
+            _ = Consume(SEMICOLON, "Expect ';' after return value.");
+            return new ReturnStatement(keyword, value);
+        }
+
+        #endregion
+
+        #region Expressions
+
         // expression → assignment ;
         private Expr Expression()
         {
@@ -188,12 +319,6 @@ namespace Lox
             return expr;
         }
 
-        // equality → comparison(( "!=" | "==" ) comparison )* ;
-        private Expr Equality()
-        {
-            return RecursiveBinaryExprBuilder(Comparison, BANG_EQUAL, EQUAL_EQUAL);
-        }
-
         // logic_or → logic_and ( "or" logic_and )* ;
         private Expr LogicOr()
         {
@@ -218,6 +343,12 @@ namespace Lox
                 expr = new Logical(expr, op, rightExpr);
             }
             return expr;
+        }
+
+        // equality → comparison(( "!=" | "==" ) comparison )* ;
+        private Expr Equality()
+        {
+            return RecursiveBinaryExprBuilder(Comparison, BANG_EQUAL, EQUAL_EQUAL);
         }
 
         // comparison → term(( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -331,137 +462,30 @@ namespace Lox
             throw Error(Peek(), "Expect expression.");
         }
 
-        // forStmt → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;        
-        private Stmt ForStatement()
+        // fnExpression → "(" parameters? ")" block ;
+        private FuncExpr FnExpression(string kind)
         {
-            Consume(LEFT_PAREN, "Expect '(' after 'for'.");
-            Stmt? initializer;
-            if(Match(SEMICOLON))
-            {
-                initializer = null;
-            }
-            else if (Match(VAR))
-            {
-                initializer = VarDeclaration();
-            }
-            else
-            {
-                initializer = ExpressionStatement();
-            }
-
-            Expr? condition = null;
+            _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+            var parameters = new List<Token>();
             if (!Check(RIGHT_PAREN))
             {
-                condition = Expression();
-            }
-            Consume(SEMICOLON, "Expect ';' after loop condition.");
-            Expr? increment = null;
-            if (!Check(RIGHT_PAREN))
-            {
-                increment = Expression();
-            }
-            Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-            var body = Statement();
-            if (increment is not null)
-            {
-                body = new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
-            }
-
-            condition ??= new Literal(true);
-            body = new WhileStatement(condition, body);
-
-            if (initializer is not null)
-            {
-                body = new BlockStatement((List<Stmt>)[initializer, body]);
-            }
-
-            return body;
-        }
-
-        // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
-        private IfStatement IfStatement()
-        {
-            Consume(LEFT_PAREN, "Expect '(' after 'if'.");
-            var condition = Expression();
-            Consume(RIGHT_PAREN, "Expect ')' after if condition.");
-            var thenBranch = Statement();
-            Stmt? elseBranch = null;
-            if (Match(ELSE))
-            {
-                elseBranch = Statement();
-            }
-            return new IfStatement(condition, thenBranch, elseBranch);
-        }
-
-        // printStmt → "print" expression ";" ;
-        private PrintStatement PrintStatement()
-        {
-            var val = Expression();
-            _ = Consume(SEMICOLON, "Expect ';' after value.");
-            return new PrintStatement(val);
-        }
-
-        // whileStmt → "while" "(" expression ")" statement ;
-        private WhileStatement WhileStatement()
-        {
-            Consume(LEFT_PAREN, "Expect '(' after 'while'.");
-            var condition = Expression();
-            Consume(RIGHT_PAREN, "Expect ')' after condition.");
-            var body = Statement();
-            return new WhileStatement(condition, body);
-        }
-
-        // breakStmt → "break" ";" ;
-        private BreakStatement BreakStatement()
-        {
-            Consume(SEMICOLON, "Expect ';' after 'break'.");
-            return new BreakStatement();
-        }
-
-        // continueStmt → "continue" ";" ;
-        private ContinueStatement ContinueStatement()
-        {
-            Consume(SEMICOLON, "Expect ';' after 'continue'.");
-            return new ContinueStatement();
-        }
-
-        // returnStmt → "return" expression? ";" ;
-        private ReturnStatement ReturnStatement()
-        {
-            var keyword = Previous();
-            Expr? value = null;
-            if (!Check(SEMICOLON))
-            {
-                value = Expression();
-            }
-            _ = Consume(SEMICOLON, "Expect ';' after return value.");
-            return new ReturnStatement(keyword, value);
-        }
-
-        // block → "{" declaration* "}" ;
-        private BlockStatement BlockStatement()
-        {
-            var statements = new List<Stmt>();
-            while (!Check(RIGHT_BRACE) && !IsAtEnd())
-            {
-                var declaration = Declaration();
-                if (declaration is not null)
+                do
                 {
-                    statements.Add(declaration);
+                    if (parameters.Count >= MaxArgCount)
+                    {
+                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} parameters.");
+                    }
+                    parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
                 }
+                while (Match(COMMA));
             }
-
-            Consume(RIGHT_BRACE, "Expect '}' after block.");
-            return new BlockStatement(statements);
+            _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
+            _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
+            var body = BlockStatement();
+            return new FuncExpr(parameters, body);
         }
 
-        // exprStmt → expression ";" ;
-        private ExprStatement ExpressionStatement()
-        {
-            var val = Expression();
-            _ = Consume(SEMICOLON, "Expect ';' after value.");
-            return new ExprStatement(val);
-        }
+        #endregion
 
         #endregion
 

@@ -13,13 +13,13 @@ namespace Lox.InterpreterVisitors
             {
                 ExprStatement es => ExprStmtVisitor(es.Expression),
                 PrintStatement ps => PrintStmtVisitor(ps.Expression),
-                VarStatement vs => VarStmtVisitor(vs.Name, vs.Initializer),
+                VarDeclaration vs => VarStmtVisitor(vs.Name, vs.Initializer),
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
                 WhileStatement ws => WhileStmtVisitor(ws),
                 BreakStatement => throw new BreakException(),
                 ContinueStatement => throw new ContinueException(),
-                FunctionStatement fs => FuncStmtVisitor(fs),
+                FunctionDeclaration fs => FuncStmtVisitor(fs),
                 ReturnStatement rs => throw new ReturnException(_expressionVisitor.Value.Evaluate(rs.Value)),
                 _ => throw new RuntimeException(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
@@ -96,7 +96,7 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit FuncStmtVisitor(FunctionStatement fs)
+        private Unit FuncStmtVisitor(FunctionDeclaration fs)
         {
             var fnName = fs.Name.Lexeme;
             var fn = new LoxFunction(fnName, fs.FuncExpr);

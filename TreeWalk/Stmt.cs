@@ -19,11 +19,13 @@
         }
     }
 
+    public record FunctionDeclaration(Token Name, FuncExpr FuncExpr) : Stmt;
+
+    public record VarDeclaration(Token Name, Expr? Initializer) : Stmt;
+
     public record ExprStatement(Expr Expression) : Stmt;
 
     public record PrintStatement(Expr Expression) : Stmt;
-
-    public record VarStatement(Token Name, Expr? Initializer) : Stmt;
 
     public record BlockStatement(IEnumerable<Stmt> Statements) : Stmt;
 
@@ -34,8 +36,6 @@
     public record BreakStatement : Stmt;
 
     public record ContinueStatement : Stmt;
-
-    public record FunctionStatement(Token Name, FuncExpr FuncExpr) : Stmt;
 
     public record ReturnStatement(Token Keyword, Expr? Value) : Stmt;
 }
