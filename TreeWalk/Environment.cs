@@ -14,7 +14,11 @@ namespace Lox
 
         private Environment(Environment original)
         {
-            _scopedMemoryStack = new Stack<Dictionary<string, object?>>(original._scopedMemoryStack.Reverse());
+            _scopedMemoryStack = new Stack<Dictionary<string, object?>>();
+            foreach (var dict in original._scopedMemoryStack.Reverse())
+            {
+                _scopedMemoryStack.Push(new Dictionary<string, object?>(dict, StringComparer.Ordinal));
+            }
             LoxMode = original.LoxMode;
         }
 
