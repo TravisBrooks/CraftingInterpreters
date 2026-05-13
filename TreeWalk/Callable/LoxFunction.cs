@@ -13,15 +13,19 @@ namespace Lox.Callable
         {
             _name = name;
             _declaration = declaration;
+            if (name is not null)
+            {
+                Lox.Environment.Define(name, this);
+            }
             _closure = Lox.Environment.Clone();
         }
 
         public object? Call(StatementVisitor visitor, List<object?> arguments)
         {
-            var originalEnvironment = Lox.Environment.Clone();
+            var originalEnvironment = Lox.Environment;
             try
             {
-                Lox.Environment = _closure.Clone();
+                Lox.Environment = _closure;
                 if (arguments.Count > 0)
                 {
                     CallImplWithArguments(visitor, arguments);
