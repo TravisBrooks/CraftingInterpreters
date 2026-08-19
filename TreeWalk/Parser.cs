@@ -251,7 +251,7 @@ namespace Lox
                 body = new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
             }
 
-            condition ??= new Literal(true);
+            condition ??= new LiteralExpr(true);
             body = new WhileStatement(condition, body);
 
             if (initializer is not null)
@@ -307,10 +307,10 @@ namespace Lox
             {
                 var equals = Previous();
                 var value = Assignment();
-                if (expr is Variable variable)
+                if (expr is VariableExpr variable)
                 {
                     var name = variable.Name;
-                    return new Assign(name, value);
+                    return new AssignExpr(name, value);
                 }
 
                 Error(equals, "Invalid assignment target.");
@@ -327,7 +327,7 @@ namespace Lox
             {
                 var op = Previous();
                 var rightExpr = LogicAnd();
-                expr = new Logical(expr, op, rightExpr);
+                expr = new LogicalExpr(expr, op, rightExpr);
             }
             return expr;
         }
@@ -340,7 +340,7 @@ namespace Lox
             {
                 var op = Previous();
                 var rightExpr = Equality();
-                expr = new Logical(expr, op, rightExpr);
+                expr = new LogicalExpr(expr, op, rightExpr);
             }
             return expr;
         }
@@ -376,7 +376,7 @@ namespace Lox
             {
                 var op = Previous();
                 var rightExpr = Unary();
-                return new Unary(op, rightExpr);
+                return new UnaryExpr(op, rightExpr);
             }
 
             return Call();
@@ -400,7 +400,7 @@ namespace Lox
             return expr;
         }
 
-        private Call FinishCall(Expr callee)
+        private CallExpr FinishCall(Expr callee)
         {
             var arguments = new List<Expr>();
             if(!Check(RIGHT_PAREN))
@@ -416,7 +416,7 @@ namespace Lox
                 while (Match(COMMA));
             }
             var paren = Consume(RIGHT_PAREN, "Expect ')' after arguments.");
-            return new Call(callee, paren, arguments);
+            return new CallExpr(callee, paren, arguments);
         }
 
         // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER | fnExpression ;
@@ -429,34 +429,34 @@ namespace Lox
 
             if (Match(FALSE))
             {
-                return new Literal(false);
+                return new LiteralExpr(false);
             }
 
             if (Match(TRUE))
             {
-                return new Literal(true);
+                return new LiteralExpr(true);
             }
 
             if (Match(NIL))
             {
-                return new Literal(null);
+                return new LiteralExpr(null);
             }
 
             if (Match(NUMBER, STRING))
             {
-                return new Literal(Previous().Literal);
+                return new LiteralExpr(Previous().Literal);
             }
 
             if (Match(IDENTIFIER))
             {
-                return new Variable(Previous());
+                return new VariableExpr(Previous());
             }
 
             if (Match(LEFT_PAREN))
             {
                 var expr = Expression();
                 _ = Consume(RIGHT_PAREN, "Expect ')' after expression.");
-                return new Grouping(expr);
+                return new GroupingExpr(expr);
             }
 
             throw Error(Peek(), "Expect expression.");
@@ -502,7 +502,7 @@ namespace Lox
             {
                 var op = Previous();
                 var rightExpr = childFunc();
-                expr = new Binary(expr, op, rightExpr);
+                expr = new BinaryExpr(expr, op, rightExpr);
             }
 
             return expr;

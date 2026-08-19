@@ -8,14 +8,14 @@ namespace Lox
         {
             return node switch
             {
-                Binary b => Parenthesize(b.Operator.Lexeme, b.Left, b.Right),
-                Grouping g => Parenthesize("group", g.Expression),
-                Literal l => l.Value switch
+                BinaryExpr b => Parenthesize(b.Operator.Lexeme, b.Left, b.Right),
+                GroupingExpr g => Parenthesize("group", g.Expression),
+                LiteralExpr l => l.Value switch
                 {
                     null => "nil",
                     _ => l.Value.ToString() ?? string.Empty
                 },
-                Unary u => Parenthesize(u.Operator.Lexeme, u.Right),
+                UnaryExpr u => Parenthesize(u.Operator.Lexeme, u.Right),
                 _ => throw new NotImplementedException($"Unknown expression type: {node.GetType().Name}")
             };
         }

@@ -22,21 +22,21 @@ namespace Lox
         }
     }
 
-    public record Literal(object? Value) : Expr;
+    public record LiteralExpr(object? Value) : Expr;
 
-    public record Unary(Token Operator, Expr Right) : Expr;
+    public record UnaryExpr(Token Operator, Expr Right) : Expr;
 
-    public record Binary(Expr Left, Token Operator, Expr Right) : Expr;
+    public record BinaryExpr(Expr Left, Token Operator, Expr Right) : Expr;
 
-    public record Grouping(Expr Expression) : Expr;
+    public record GroupingExpr(Expr Expression) : Expr;
 
-    public record Variable(Token Name) : Expr;
+    public record VariableExpr(Token Name) : Expr;
 
-    public record Assign(Token Name, Expr Value) : Expr;
+    public record AssignExpr(Token Name, Expr Value) : Expr;
 
-    public record Logical(Expr Left, Token Operator, Expr Right) : Expr;
+    public record LogicalExpr(Expr Left, Token Operator, Expr Right) : Expr;
 
-    public record Call(Expr Callee, Token Paren, IEnumerable<Expr> Arguments) : Expr;
+    public record CallExpr(Expr Callee, Token Paren, IEnumerable<Expr> Arguments) : Expr;
 
     public record FuncExpr(IList<Token> Parameters, BlockStatement Body) : Expr;
 }

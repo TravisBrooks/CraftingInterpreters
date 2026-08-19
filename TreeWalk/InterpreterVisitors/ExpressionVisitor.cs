@@ -6,20 +6,25 @@ namespace Lox.InterpreterVisitors
 {
     public class ExpressionVisitor : IVisitor<Expr, object?>
     {
-        private readonly Lazy<StatementVisitor> _statementVisitor = new(() => new StatementVisitor());
+        private readonly StatementVisitor _statementVisitor;
+
+        public ExpressionVisitor(StatementVisitor statementVisitor)
+        {
+            _statementVisitor = statementVisitor;
+        }
 
         public object? Visit(Expr expr)
         {
             return expr switch
             {
-                Literal l => l.Value,
-                Grouping g => Evaluate(g.Expression),
-                Unary u => VisitUnary(u),
-                Binary b => VisitBinary(b),
-                Variable v => Lox.Environment.Get(v.Name),
-                Assign a => VisitAssign(a),
-                Logical l => VisitLogical(l),
-                Call c => VisitCall(c),
+                LiteralExpr l => l.Value,
+                GroupingExpr g => Evaluate(g.Expression),
+                UnaryExpr u => VisitUnary(u),
+                BinaryExpr b => VisitBinary(b),
+                VariableExpr v => VisitVariableExpr(v),
+                AssignExpr a => VisitAssign(a),
+                LogicalExpr l => VisitLogical(l),
+                CallExpr c => VisitCall(c),
                 FuncExpr f => VisitFuncExpr(f),
                 _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
@@ -46,7 +51,7 @@ namespace Lox.InterpreterVisitors
             };
         }
 
-        private object? VisitUnary(Unary u)
+        private object? VisitUnary(UnaryExpr u)
         {
             var right = Evaluate(u.Right);
             if (right is not null)
@@ -62,7 +67,7 @@ namespace Lox.InterpreterVisitors
             return null;
         }
 
-        private object? VisitBinary(Binary b)
+        private object? VisitBinary(BinaryExpr b)
         {
             var lhs = Evaluate(b.Left);
             var rhs = Evaluate(b.Right);
@@ -95,14 +100,19 @@ namespace Lox.InterpreterVisitors
             }
         }
 
-        private object? VisitAssign(Assign expr)
+        private object? VisitVariableExpr(VariableExpr ve)
+        {
+            return Lox.Environment.Get(ve.Name);
+        }
+
+        private object? VisitAssign(AssignExpr expr)
         {
             var val = Evaluate(expr.Value);
             Lox.Environment.Assign(expr.Name, val);
             return val;
         }
 
-        private object? VisitLogical(Logical logical)
+        private object? VisitLogical(LogicalExpr logical)
         {
             var left = Evaluate(logical.Left);
             if (logical.Operator.TokenType == OR)
@@ -123,7 +133,7 @@ namespace Lox.InterpreterVisitors
             return Evaluate(logical.Right);
         }
 
-        private object? VisitCall(Call call)
+        private object? VisitCall(CallExpr call)
         {
             var callee = Evaluate(call.Callee);
             var arguments = call.Arguments.Select(Evaluate).ToList();
@@ -133,12 +143,12 @@ namespace Lox.InterpreterVisitors
                 {
                     throw new RuntimeException(call.Paren, $"Expected {fn.Arity()} arguments but got {arguments.Count}.");
                 }
-                return fn.Call(_statementVisitor.Value, arguments);
+                return fn.Call(_statementVisitor, arguments);
             }
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }
 
-        private object? VisitFuncExpr(FuncExpr funcExpr)
+        private static LoxFunction VisitFuncExpr(FuncExpr funcExpr)
         {
             return new LoxFunction(null, funcExpr);
         }

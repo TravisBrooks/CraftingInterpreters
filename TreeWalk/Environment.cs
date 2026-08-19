@@ -5,6 +5,8 @@ namespace Lox
     public class Environment
     {
         private readonly Stack<Dictionary<string, object?>> _scopedMemoryStack = new();
+        private Dictionary<string, object?> GlobalScope => _scopedMemoryStack.Last();
+        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
 
         public Environment()
         {
@@ -14,15 +16,16 @@ namespace Lox
 
         private Environment(Environment original)
         {
-            _scopedMemoryStack = new Stack<Dictionary<string, object?>>();
-            foreach (var dict in original._scopedMemoryStack.Reverse())
-            {
-                _scopedMemoryStack.Push(new Dictionary<string, object?>(dict, StringComparer.Ordinal));
-            }
+            // we make a new stack but just a shallow copy of the dictionaries
+            _scopedMemoryStack = new Stack<Dictionary<string, object?>>(original._scopedMemoryStack.Reverse());
             LoxMode = original.LoxMode;
         }
 
-        public Environment Clone() => new(this);
+        public Environment BuildClosureCopy()
+        {
+            var closureCopy = new Environment(this);
+            return closureCopy;
+        }
 
         public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
 
@@ -39,8 +42,6 @@ namespace Lox
                 _scopedMemoryStack.Pop();
             }
         }
-
-        private Dictionary<string, object?> GlobalScope => _scopedMemoryStack.Last();
 
         public void Define(string name, object? value)
         {
@@ -76,6 +77,6 @@ namespace Lox
             match[name.Lexeme] = value;
         }
 
-        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
+
     }
 }

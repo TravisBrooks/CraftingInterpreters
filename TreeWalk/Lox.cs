@@ -75,9 +75,16 @@ namespace Lox
 
         private static void RunFile(string pathToScript)
         {
-            var source = File.ReadAllText(pathToScript);
-            Environment.LoxMode = LoxMode.SCRIPT_MODE;
-            Run(source);
+            try
+            {
+                var source = File.ReadAllText(pathToScript);
+                Environment.LoxMode = LoxMode.SCRIPT_MODE;
+                Run(source);
+            }
+            catch (FileNotFoundException)
+            {
+                Console.Error.WriteLine("Error: File not found: {0}", pathToScript);
+            }
         }
 
         private static void Run(string source)

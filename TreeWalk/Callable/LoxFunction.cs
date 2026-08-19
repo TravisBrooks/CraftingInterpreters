@@ -17,14 +17,17 @@ namespace Lox.Callable
             {
                 Lox.Environment.Define(name, this);
             }
-            _closure = Lox.Environment.Clone();
+            _closure = Lox.Environment.BuildClosureCopy();
         }
 
         public object? Call(StatementVisitor visitor, List<object?> arguments)
         {
+            // we're not doing anything to this Environment so no need to clone it.
             var originalEnvironment = Lox.Environment;
             try
             {
+                // variables in the closure might get mutated, and we want that to persist across calls
+                // so intentionally not cloning the closure Environment.
                 Lox.Environment = _closure;
                 if (arguments.Count > 0)
                 {
