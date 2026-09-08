@@ -35,7 +35,7 @@ namespace Lox.InterpreterVisitors
         private Unit ExprStmtVisitor(Expr expr)
         {
             var exprVal = _expressionVisitor.Evaluate(expr);
-            if (Lox.Environment.LoxMode == LoxMode.INTERACTIVE_MODE)
+            if (Lox.EnvironmentContext.Environment.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
                 Console.WriteLine(Stringify(exprVal));
             }
@@ -58,7 +58,7 @@ namespace Lox.InterpreterVisitors
                 val = _expressionVisitor.Evaluate(initializer);
             }
 
-            Lox.Environment.Define(name.Lexeme, val);
+            Lox.EnvironmentContext.Environment.Define(name.Lexeme, val);
             return Unit.Value;
         }
 
@@ -105,7 +105,7 @@ namespace Lox.InterpreterVisitors
         {
             var fnName = fs.Name.Lexeme;
             var fn = new LoxFunction(fnName, fs.FuncExpr);
-            Lox.Environment.Define(fnName, fn);
+            Lox.EnvironmentContext.Environment.Define(fnName, fn);
             return Unit.Value;
         }
 
@@ -113,18 +113,13 @@ namespace Lox.InterpreterVisitors
 
         private void ExecuteBlock(IEnumerable<Stmt> statements)
         {
-            try
+            Environment.ExecuteInScope(Lox.EnvironmentContext, () => 
             {
-                Lox.Environment.EnterInnerScope();
                 foreach (var stmt in statements)
                 {
                     stmt.Accept(this);
                 }
-            }
-            finally
-            {
-                Lox.Environment.ExitInnerScope();
-            }
+            });
         }
 
         private static string Stringify(object? o)

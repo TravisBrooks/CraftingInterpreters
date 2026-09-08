@@ -15,20 +15,20 @@ namespace Lox.Callable
             _declaration = declaration;
             if (name is not null)
             {
-                Lox.Environment.Define(name, this);
+                Lox.EnvironmentContext.Environment.Define(name, this);
             }
-            _closure = Lox.Environment.BuildClosureCopy();
+            _closure = Lox.EnvironmentContext.Environment;
         }
 
         public object? Call(StatementVisitor visitor, List<object?> arguments)
         {
             // we're not doing anything to this Environment so no need to clone it.
-            var originalEnvironment = Lox.Environment;
+            var originalEnvironment = Lox.EnvironmentContext.Environment;
             try
             {
                 // variables in the closure might get mutated, and we want that to persist across calls
                 // so intentionally not cloning the closure Environment.
-                Lox.Environment = _closure;
+                Lox.EnvironmentContext.Environment = _closure;
                 if (arguments.Count > 0)
                 {
                     CallImplWithArguments(visitor, arguments);
@@ -44,7 +44,7 @@ namespace Lox.Callable
             }
             finally
             {
-                Lox.Environment = originalEnvironment;
+                Lox.EnvironmentContext.Environment = originalEnvironment;
             }
 
             return null;
@@ -57,22 +57,16 @@ namespace Lox.Callable
         /// <param name="arguments"></param>
         private void CallImplWithArguments(StatementVisitor visitor, List<object?> arguments)
         {
-            try
+            Environment.ExecuteInScope(Lox.EnvironmentContext, () =>
             {
-                // We do not want the parameters to be defined in the outer scope, which might be the global scope, so we enter a new inner scope.
-                // We could just willy-nilly leave cruft lying around in the global scope, but it seems sloppy.
-                Lox.Environment.EnterInnerScope();
+
                 for (var i = 0; i < _declaration.Parameters.Count; i++)
                 {
-                    Lox.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
+                    Lox.EnvironmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
                 }
                 // The body will be executed in its own inner scope, possibly with nested inner scopes if there are blocks in the body.
                 _ = visitor.Visit(_declaration.Body);
-            }
-            finally
-            {
-                Lox.Environment.ExitInnerScope();
-            }
+            });
         }
 
         /// <summary>

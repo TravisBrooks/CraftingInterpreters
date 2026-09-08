@@ -10,13 +10,13 @@ namespace Lox
         private static readonly List<string> RuntimeErrors = [];
         private static readonly Interpreter Interpreter = new();
 
-        public static Environment Environment { get; set; } = new();
+        public static EnvironmentContext EnvironmentContext { get; } = new();
 
         #region Public interface
 
         public static int Main(string[] args)
         {
-            Environment.DefineGlobal("clock", new Clock());
+            EnvironmentContext.Environment.DefineGlobal("clock", new Clock());
 
             var timer = new Stopwatch();
             timer.Start();
@@ -78,7 +78,7 @@ namespace Lox
             try
             {
                 var source = File.ReadAllText(pathToScript);
-                Environment.LoxMode = LoxMode.SCRIPT_MODE;
+                EnvironmentContext.Environment.LoxMode = LoxMode.SCRIPT_MODE;
                 Run(source);
             }
             catch (FileNotFoundException)
@@ -104,7 +104,7 @@ namespace Lox
 
         private static void RunPrompt()
         {
-            Environment.LoxMode = LoxMode.INTERACTIVE_MODE;
+            EnvironmentContext.Environment.LoxMode = LoxMode.INTERACTIVE_MODE;
             using var reader = new StreamReader(Console.OpenStandardInput());
             while (true)
             {

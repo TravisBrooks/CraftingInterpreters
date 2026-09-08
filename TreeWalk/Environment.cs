@@ -4,79 +4,77 @@ namespace Lox
 {
     public class Environment
     {
-        private readonly Stack<Dictionary<string, object?>> _scopedMemoryStack = new();
-        private Dictionary<string, object?> GlobalScope => _scopedMemoryStack.Last();
-        private Dictionary<string, object?> CurrentScope => _scopedMemoryStack.Peek();
+        private readonly Dictionary<string, object?> _values;
 
-        public Environment()
+        public Environment(Environment? enclosing = null)
         {
-            // Add the global scope
-            _scopedMemoryStack.Push(new Dictionary<string, object?>(StringComparer.Ordinal));
+            _values = new Dictionary<string, object?>();
+            Enclosing = enclosing;
         }
 
-        private Environment(Environment original)
-        {
-            // we make a new stack but just a shallow copy of the dictionaries
-            _scopedMemoryStack = new Stack<Dictionary<string, object?>>(original._scopedMemoryStack.Reverse());
-            LoxMode = original.LoxMode;
-        }
-
-        public Environment BuildClosureCopy()
-        {
-            var closureCopy = new Environment(this);
-            return closureCopy;
-        }
+        public Environment? Enclosing { get; }
 
         public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
 
-        public void EnterInnerScope()
-        {
-            _scopedMemoryStack.Push(new Dictionary<string, object?>(StringComparer.Ordinal));
-        }
-
-        public void ExitInnerScope()
-        {
-            // Ensure we don't pop the global scope
-            if (_scopedMemoryStack.Count > 1)
-            {
-                _scopedMemoryStack.Pop();
-            }
-        }
-
         public void Define(string name, object? value)
         {
-            CurrentScope[name] = value;
+            _values[name] = value;
         }
 
         public void DefineGlobal(string name, object? value)
         {
-            GlobalScope[name] = value;
+            if (Enclosing is not null)
+            {
+                Enclosing.DefineGlobal(name, value);
+            }
+            else
+            {
+                _values[name] = value;
+            }
         }
 
         public object? Get(Token name)
         {
-            foreach (var scope in _scopedMemoryStack)
+            if (_values.TryGetValue(name.Lexeme, out var value))
             {
-                if (scope.TryGetValue(name.Lexeme, out var value))
-                {
-                    return value;
-                }
+                return value;
             }
-
+            if (Enclosing is not null)
+            {
+                return Enclosing.Get(name);
+            }
             throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
         }
 
         public void Assign(Token name, object? value)
         {
-            var match = _scopedMemoryStack.FirstOrDefault(scope => scope.ContainsKey(name.Lexeme));
-            if (match is null)
+            // Check if the variable exists in the current environment
+            if (_values.ContainsKey(name.Lexeme))
             {
-                throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
+                _values[name.Lexeme] = value;
+                return;
             }
-
-            match[name.Lexeme] = value;
+            // If not, check the enclosing environment(s)
+            if (Enclosing is not null)
+            {
+                Enclosing.Assign(name, value);
+                return;
+            }
+            throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
         }
 
-
+        public static void ExecuteInScope(EnvironmentContext ctxt, Action action)
+        {
+            var previous = ctxt.Environment;
+            ctxt.Environment = new Environment(previous);
+            try
+            {
+                action();
+            }
+            finally
+            {
+                ctxt.Environment = previous;
+            }
+        }
     }
 }

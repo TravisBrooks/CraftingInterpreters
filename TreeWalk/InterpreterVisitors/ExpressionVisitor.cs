@@ -102,13 +102,13 @@ namespace Lox.InterpreterVisitors
 
         private object? VisitVariableExpr(VariableExpr ve)
         {
-            return Lox.Environment.Get(ve.Name);
+            return Lox.EnvironmentContext.Environment.Get(ve.Name);
         }
 
         private object? VisitAssign(AssignExpr expr)
         {
             var val = Evaluate(expr.Value);
-            Lox.Environment.Assign(expr.Name, val);
+            Lox.EnvironmentContext.Environment.Assign(expr.Name, val);
             return val;
         }
 
