@@ -2,5 +2,5 @@
   <Folder Name="/Solution Items/">
     <File Path="README.md" />
   </Folder>
-  <Project Path="./Interpreter/Lox.csproj" />
+  <Project Path="Interpreter/Lox/Lox.csproj" />
 </Solution>
