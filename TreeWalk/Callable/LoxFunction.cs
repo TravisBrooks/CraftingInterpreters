@@ -62,7 +62,6 @@ namespace Lox.Callable
         {
             Environment.ExecuteInScope(_environmentContext, () =>
             {
-
                 for (var i = 0; i < _declaration.Parameters.Count; i++)
                 {
                     _environmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
