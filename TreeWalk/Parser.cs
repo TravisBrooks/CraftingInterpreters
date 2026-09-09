@@ -44,11 +44,13 @@ namespace Lox
         private const int MaxArgCount = 255;
         private readonly List<Token> _tokens;
         private int _current;
+        private readonly ErrorLogger _errorLogger;
 
-        public Parser(IEnumerable<Token> tokens)
+        public Parser(ErrorLogger errorLogger, IEnumerable<Token> tokens)
         {
             _tokens = tokens.ToList();
             _current = 0;
+            _errorLogger = errorLogger;
         }
 
         public ImmutableList<Stmt> Parse()
@@ -409,7 +411,7 @@ namespace Lox
                 {
                     if (arguments.Count >= MaxArgCount)
                     {
-                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} arguments.");
+                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxArgCount} arguments.");
                     }
                     arguments.Add(Expression());
                 }
@@ -473,7 +475,7 @@ namespace Lox
                 {
                     if (parameters.Count >= MaxArgCount)
                     {
-                        Lox.Error(Peek(), $"Can't have more than {MaxArgCount} parameters.");
+                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxArgCount} parameters.");
                     }
                     parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
                 }
@@ -564,9 +566,9 @@ namespace Lox
             throw Error(Peek(), errorMessage);
         }
 
-        private static ParseException Error(Token token, string errorMessage)
+        private ParseException Error(Token token, string errorMessage)
         {
-            Lox.Error(token, errorMessage);
+            _errorLogger.ReportError(token, errorMessage);
             return new ParseException();
         }
 

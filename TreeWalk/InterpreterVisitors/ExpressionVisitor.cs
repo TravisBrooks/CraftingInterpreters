@@ -6,11 +6,15 @@ namespace Lox.InterpreterVisitors
 {
     public class ExpressionVisitor : IVisitor<Expr, object?>
     {
-        private readonly StatementVisitor _statementVisitor;
+        private readonly EnvironmentContext _environmentContext;
+        private readonly Func<StatementVisitor> _statementVisitorFn;
 
-        public ExpressionVisitor(StatementVisitor statementVisitor)
+        public ExpressionVisitor(
+            EnvironmentContext environmentContext,
+            Func<StatementVisitor> statementVisitorFnFn)
         {
-            _statementVisitor = statementVisitor;
+            _environmentContext = environmentContext;
+            _statementVisitorFn = statementVisitorFnFn;
         }
 
         public object? Visit(Expr expr)
@@ -102,13 +106,13 @@ namespace Lox.InterpreterVisitors
 
         private object? VisitVariableExpr(VariableExpr ve)
         {
-            return Lox.EnvironmentContext.Environment.Get(ve.Name);
+            return _environmentContext.Environment.Get(ve.Name);
         }
 
         private object? VisitAssign(AssignExpr expr)
         {
             var val = Evaluate(expr.Value);
-            Lox.EnvironmentContext.Environment.Assign(expr.Name, val);
+            _environmentContext.Environment.Assign(expr.Name, val);
             return val;
         }
 
@@ -143,14 +147,14 @@ namespace Lox.InterpreterVisitors
                 {
                     throw new RuntimeException(call.Paren, $"Expected {fn.Arity()} arguments but got {arguments.Count}.");
                 }
-                return fn.Call(_statementVisitor, arguments);
+                return fn.Call(_statementVisitorFn(), arguments);
             }
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }
 
-        private static LoxFunction VisitFuncExpr(FuncExpr funcExpr)
+        private LoxFunction VisitFuncExpr(FuncExpr funcExpr)
         {
-            return new LoxFunction(null, funcExpr);
+            return new LoxFunction(_environmentContext, null, funcExpr);
         }
 
         private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)

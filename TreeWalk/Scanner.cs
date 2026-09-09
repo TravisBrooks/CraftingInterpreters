@@ -27,17 +27,19 @@ namespace Lox
             ["continue"] = CONTINUE,
         };
 
+        private readonly ErrorLogger _errorLogger;
         private readonly string _source;
         private readonly List<Token> _tokens;
         private int _current;
         private int _line;
         private int _start;
 
-        public Scanner(string source)
+        public Scanner(ErrorLogger errorLogger, string source)
         {
             _source = source;
             _tokens = [];
             _line = 1;
+            _errorLogger = errorLogger;
         }
 
         public ImmutableList<Token> ScanTokens()
@@ -145,7 +147,7 @@ namespace Lox
                     }
                     else
                     {
-                        Lox.Error(_line, $"Unexpected character: {c}");
+                        _errorLogger.ReportError(Peek(), $"Unexpected character: {c}");
                     }
 
                     break;
@@ -199,7 +201,7 @@ namespace Lox
 
             if (IsAtEnd())
             {
-                Lox.Error(_line, "Unterminated string.");
+                _errorLogger.ReportError(_line, "Unterminated string.");
                 return;
             }
 
@@ -232,7 +234,7 @@ namespace Lox
             var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
             if (!allowedNextChars.Contains(Peek()))
             {
-                Lox.Error(_line, "Invalid character after number.");
+                _errorLogger.ReportError(Peek(), "Invalid character after number.");
                 return;
             }
 

@@ -5,7 +5,16 @@ namespace Lox
 {
     public class Interpreter
     {
-        private readonly StatementVisitor _statementVisitor = new();
+        private readonly StatementVisitor _statementVisitor;
+        private readonly ErrorLogger _errorLogger;
+
+        public Interpreter(
+            ErrorLogger errorLogger,
+            StatementVisitor statementVisitor)
+        {
+            _statementVisitor = statementVisitor;
+            _errorLogger = errorLogger;
+        }
 
         public void Interpret(IEnumerable<Stmt> statements)
         {
@@ -18,7 +27,7 @@ namespace Lox
             }
             catch (RuntimeException e)
             {
-                Lox.RuntimeError(e);
+                _errorLogger.ReportRuntimeError(e);
             }
         }
 

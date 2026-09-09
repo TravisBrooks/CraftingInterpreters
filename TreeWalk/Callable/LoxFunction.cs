@@ -5,30 +5,33 @@ namespace Lox.Callable
 {
     public class LoxFunction : ICallable
     {
+        private readonly EnvironmentContext _environmentContext;
         private readonly string? _name;
         private readonly FuncExpr _declaration;
         private readonly Environment _closure;
 
-        public LoxFunction(string? name, FuncExpr declaration)
+        public LoxFunction(
+            EnvironmentContext environmentContext,
+            string? name,
+            FuncExpr declaration)
         {
+            _environmentContext = environmentContext;
             _name = name;
             _declaration = declaration;
             if (name is not null)
             {
-                Lox.EnvironmentContext.Environment.Define(name, this);
+                _environmentContext.Environment.Define(name, this);
             }
-            _closure = Lox.EnvironmentContext.Environment;
+            _closure = _environmentContext.Environment;
         }
 
         public object? Call(StatementVisitor visitor, List<object?> arguments)
         {
-            // we're not doing anything to this Environment so no need to clone it.
-            var originalEnvironment = Lox.EnvironmentContext.Environment;
+            // we're not doing anything to this Environment so no need to set it aside.
+            var originalEnvironment = _environmentContext.Environment;
             try
             {
-                // variables in the closure might get mutated, and we want that to persist across calls
-                // so intentionally not cloning the closure Environment.
-                Lox.EnvironmentContext.Environment = _closure;
+               _environmentContext.Environment = new Environment(_closure);
                 if (arguments.Count > 0)
                 {
                     CallImplWithArguments(visitor, arguments);
@@ -44,7 +47,7 @@ namespace Lox.Callable
             }
             finally
             {
-                Lox.EnvironmentContext.Environment = originalEnvironment;
+                _environmentContext.Environment = originalEnvironment;
             }
 
             return null;
@@ -57,12 +60,12 @@ namespace Lox.Callable
         /// <param name="arguments"></param>
         private void CallImplWithArguments(StatementVisitor visitor, List<object?> arguments)
         {
-            Environment.ExecuteInScope(Lox.EnvironmentContext, () =>
+            Environment.ExecuteInScope(_environmentContext, () =>
             {
 
                 for (var i = 0; i < _declaration.Parameters.Count; i++)
                 {
-                    Lox.EnvironmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
+                    _environmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
                 }
                 // The body will be executed in its own inner scope, possibly with nested inner scopes if there are blocks in the body.
                 _ = visitor.Visit(_declaration.Body);

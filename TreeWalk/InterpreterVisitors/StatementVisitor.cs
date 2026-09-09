@@ -5,11 +5,15 @@ namespace Lox.InterpreterVisitors
 {
     public class StatementVisitor : IVisitor<Stmt, Unit>
     {
+        private readonly EnvironmentContext _environmentContext;
         private readonly ExpressionVisitor _expressionVisitor;
 
-        public StatementVisitor()
+        public StatementVisitor(
+            EnvironmentContext environmentContext,
+            ExpressionVisitor expressionVisitor)
         {
-            _expressionVisitor = new ExpressionVisitor(this);
+            _environmentContext = environmentContext;
+            _expressionVisitor = expressionVisitor;
         }
 
         public Unit Visit(Stmt stmt)
@@ -35,7 +39,7 @@ namespace Lox.InterpreterVisitors
         private Unit ExprStmtVisitor(Expr expr)
         {
             var exprVal = _expressionVisitor.Evaluate(expr);
-            if (Lox.EnvironmentContext.Environment.LoxMode == LoxMode.INTERACTIVE_MODE)
+            if (_environmentContext.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
                 Console.WriteLine(Stringify(exprVal));
             }
@@ -58,7 +62,7 @@ namespace Lox.InterpreterVisitors
                 val = _expressionVisitor.Evaluate(initializer);
             }
 
-            Lox.EnvironmentContext.Environment.Define(name.Lexeme, val);
+            _environmentContext.Environment.Define(name.Lexeme, val);
             return Unit.Value;
         }
 
@@ -101,11 +105,11 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private static Unit FuncStmtVisitor(FunctionDeclaration fs)
+        private Unit FuncStmtVisitor(FunctionDeclaration fs)
         {
             var fnName = fs.Name.Lexeme;
-            var fn = new LoxFunction(fnName, fs.FuncExpr);
-            Lox.EnvironmentContext.Environment.Define(fnName, fn);
+            var fn = new LoxFunction(_environmentContext, fnName, fs.FuncExpr);
+            _environmentContext.Environment.Define(fnName, fn);
             return Unit.Value;
         }
 
@@ -113,7 +117,7 @@ namespace Lox.InterpreterVisitors
 
         private void ExecuteBlock(IEnumerable<Stmt> statements)
         {
-            Environment.ExecuteInScope(Lox.EnvironmentContext, () => 
+            Environment.ExecuteInScope(_environmentContext, () => 
             {
                 foreach (var stmt in statements)
                 {

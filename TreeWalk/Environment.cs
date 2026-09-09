@@ -14,8 +14,6 @@ namespace Lox
 
         public Environment? Enclosing { get; }
 
-        public LoxMode LoxMode { get; set; } = LoxMode.SCRIPT_MODE;
-
         public void Define(string name, object? value)
         {
             _values[name] = value;
