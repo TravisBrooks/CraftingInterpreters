@@ -141,7 +141,7 @@ namespace Lox
                     {
                         Number();
                     }
-                    else if (char.IsLetter(c))
+                    else if (char.IsLetter(c) || c == '_')
                     {
                         Identifier();
                     }
@@ -253,7 +253,7 @@ namespace Lox
 
         private void Identifier()
         {
-            while (char.IsLetterOrDigit(Peek()))
+            while (char.IsLetterOrDigit(Peek()) || Peek() == '_')
             {
                 Advance();
             }

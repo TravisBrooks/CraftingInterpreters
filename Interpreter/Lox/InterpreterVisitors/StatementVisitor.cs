@@ -5,13 +5,16 @@ namespace Lox.InterpreterVisitors
 {
     public class StatementVisitor : IVisitor<Stmt, Unit>
     {
+        private readonly IConsole _console;
         private readonly EnvironmentContext _environmentContext;
         private readonly ExpressionVisitor _expressionVisitor;
 
         public StatementVisitor(
+            IConsole console,
             EnvironmentContext environmentContext,
             ExpressionVisitor expressionVisitor)
         {
+            _console = console;
             _environmentContext = environmentContext;
             _expressionVisitor = expressionVisitor;
         }
@@ -41,7 +44,7 @@ namespace Lox.InterpreterVisitors
             var exprVal = _expressionVisitor.Evaluate(expr);
             if (_environmentContext.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
-                Console.WriteLine(Stringify(exprVal));
+                _console.WriteLine(Stringify(exprVal));
             }
 
             return Unit.Value;
@@ -50,7 +53,7 @@ namespace Lox.InterpreterVisitors
         private Unit PrintStmtVisitor(Expr expr)
         {
             var val = _expressionVisitor.Evaluate(expr);
-            Console.WriteLine(Stringify(val));
+            _console.WriteLine(Stringify(val));
             return Unit.Value;
         }
 

@@ -41,7 +41,7 @@ namespace Lox
     // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
     public class Parser
     {
-        private const int MaxArgCount = 255;
+        public const int MaxFuncParameterCount = 255;
         private readonly List<Token> _tokens;
         private int _current;
         private readonly ErrorLogger _errorLogger;
@@ -163,7 +163,7 @@ namespace Lox
         private ExprStatement ExpressionStatement()
         {
             var val = Expression();
-            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            _ = Consume(SEMICOLON, "Expect ';' after expression.");
             return new ExprStatement(val);
         }
 
@@ -171,7 +171,7 @@ namespace Lox
         private PrintStatement PrintStatement()
         {
             var val = Expression();
-            _ = Consume(SEMICOLON, "Expect ';' after value.");
+            _ = Consume(SEMICOLON, "Expect ';' after expression.");
             return new PrintStatement(val);
         }
 
@@ -235,12 +235,24 @@ namespace Lox
                 initializer = ExpressionStatement();
             }
 
-            Expr? condition = null;
-            if (!Check(RIGHT_PAREN))
+            Expr? condition;
+            if (Match(SEMICOLON))
+            {
+                condition = null;
+            }
+            else
             {
                 condition = Expression();
+                Consume(SEMICOLON, "Expect ';' after loop condition.");
             }
-            Consume(SEMICOLON, "Expect ';' after loop condition.");
+
+            //Expr? condition = null;
+            //if (!Check(RIGHT_PAREN))
+            //{
+            //    condition = Expression();
+            //}
+            //Consume(SEMICOLON, "Expect ';' after loop condition.");
+
             Expr? increment = null;
             if (!Check(RIGHT_PAREN))
             {
@@ -409,9 +421,9 @@ namespace Lox
             {
                 do
                 {
-                    if (arguments.Count >= MaxArgCount)
+                    if (arguments.Count >= MaxFuncParameterCount)
                     {
-                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxArgCount} arguments.");
+                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxFuncParameterCount} arguments.");
                     }
                     arguments.Add(Expression());
                 }
@@ -473,9 +485,9 @@ namespace Lox
             {
                 do
                 {
-                    if (parameters.Count >= MaxArgCount)
+                    if (parameters.Count >= MaxFuncParameterCount)
                     {
-                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxArgCount} parameters.");
+                        _errorLogger.ReportError(Peek(), $"Can't have more than {MaxFuncParameterCount} parameters.");
                     }
                     parameters.Add(Consume(IDENTIFIER, "Expect parameter name."));
                 }

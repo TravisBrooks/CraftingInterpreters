@@ -3,4 +3,5 @@
     <File Path="README.md" />
   </Folder>
   <Project Path="Interpreter/Lox/Lox.csproj" />
+  <Project Path="Interpreter/LoxTest/LoxTest.csproj" Id="4d6e4f35-04ae-4c7c-bf09-611a4de78339" />
 </Solution>

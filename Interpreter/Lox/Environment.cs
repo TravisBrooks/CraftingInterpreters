@@ -31,6 +31,16 @@ namespace Lox
             }
         }
 
+        public object? GetGlobal(string name)
+        {
+            if (Enclosing is not null)
+            {
+                return Enclosing.GetGlobal(name);
+            }
+
+            return _values.GetValueOrDefault(name);
+        }
+
         public object? Get(Token name)
         {
             if (_values.TryGetValue(name.Lexeme, out var value))

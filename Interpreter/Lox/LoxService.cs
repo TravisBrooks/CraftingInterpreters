@@ -1,22 +1,21 @@
 ﻿using Lox.Callable;
-using Microsoft.Extensions.Logging;
 
 namespace Lox
 {
     public class LoxService
     {
-        private readonly ILogger<LoxService> _logger;
+        private readonly IConsole _console;
         private readonly ErrorLogger _errorLogger;
         private readonly EnvironmentContext _environmentContext;
         private readonly Interpreter _interpreter;
 
         public LoxService(
-            ILogger<LoxService> logger,
+            IConsole console,
             ErrorLogger errorLogger,
             EnvironmentContext environmentContext,
             Interpreter interpreter)
         {
-            _logger = logger;
+            _console = console;
             _errorLogger = errorLogger;
             _environmentContext = environmentContext;
             _interpreter = interpreter;
@@ -24,7 +23,6 @@ namespace Lox
 
         public int Start(string? fileName)
         {
-            _environmentContext.Environment.DefineGlobal("clock", new Clock());
             if (string.IsNullOrWhiteSpace(fileName))
             {
                 RunPrompt();
@@ -59,22 +57,21 @@ namespace Lox
             }
             catch (FileNotFoundException)
             {
-                _logger.LogError("Error: File not found: {0}", fileName);
+                _console.WriteErrorLine($"Error: File not found: {fileName}");
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("Error: {0}", ex.Message);
+                _console.WriteErrorLine($"Error: {ex.Message}");
             }
         }
 
         private void RunPrompt()
         {
             _environmentContext.LoxMode = LoxMode.INTERACTIVE_MODE;
-            using var reader = new StreamReader(Console.OpenStandardInput());
             while (true)
             {
-                Console.WriteLine(">");
-                var line = reader.ReadLine();
+                _console.WriteLine(">");
+                var line = _console.ReadLine();
                 if (line is null)
                 {
                     break;
@@ -95,8 +92,12 @@ namespace Lox
             }
         }
 
-        private void Run(string loxCode)
+        public void Run(string loxCode)
         {
+            if (_environmentContext.Environment.GetGlobal("clock") is null)
+            {
+                _environmentContext.Environment.DefineGlobal("clock", new Clock());
+            }
             var scanner = new Scanner(_errorLogger, loxCode);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(_errorLogger, tokens);

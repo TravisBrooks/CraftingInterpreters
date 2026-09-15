@@ -1,17 +1,16 @@
 ﻿using Lox.Exception;
-using Microsoft.Extensions.Logging;
 
 namespace Lox
 {
     public class ErrorLogger
     {
-        private readonly ILogger<ErrorLogger> _logger;
+        private readonly IConsole _console;
         private readonly List<string> _errors = [];
         private readonly List<string> _runtimeErrors = [];
 
-        public ErrorLogger(ILogger<ErrorLogger> logger)
+        public ErrorLogger(IConsole console)
         {
-            _logger = logger;
+            _console = console;
         }
 
         public void ReportError(int line, string where, string message)
@@ -50,7 +49,7 @@ namespace Lox
         {
             foreach (var error in _errors)
             {
-                _logger.LogError(error);
+                _console.WriteErrorLine(error);
             }
         }
 
@@ -58,7 +57,7 @@ namespace Lox
         {
             foreach (var error in _runtimeErrors)
             {
-                _logger.LogError(error);
+                _console.WriteErrorLine(error);
             }
         }
 
