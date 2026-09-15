@@ -5,24 +5,24 @@ namespace Lox
 {
     public class Interpreter
     {
-        private readonly StatementVisitor _statementVisitor;
+        private readonly DeclarationVisitor _declarationVisitor;
         private readonly ErrorLogger _errorLogger;
 
         public Interpreter(
             ErrorLogger errorLogger,
-            StatementVisitor statementVisitor)
+            DeclarationVisitor declarationVisitor)
         {
-            _statementVisitor = statementVisitor;
+            _declarationVisitor = declarationVisitor;
             _errorLogger = errorLogger;
         }
 
-        public void Interpret(IEnumerable<Stmt> statements)
+        public void Interpret(IEnumerable<Decl> declarations)
         {
             try
             {
-                foreach (var stmt in statements)
+                foreach (var decl in declarations)
                 {
-                    Execute(stmt);
+                    Execute(decl);
                 }
             }
             catch (RuntimeException e)
@@ -31,9 +31,9 @@ namespace Lox
             }
         }
 
-        private void Execute(Stmt stmt)
+        private void Execute(Decl decl)
         {
-            _ = stmt.Accept(_statementVisitor);
+            _ = decl.Accept(_declarationVisitor);
         }
     }
 }

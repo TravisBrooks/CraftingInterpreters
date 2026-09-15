@@ -70,7 +70,7 @@
             Assert.True(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
             var msg = outputMessages.First();
-            Assert.Contains("[line 2] Error at 'fun': Expect expression.", msg);
+            Assert.Contains("[line 2] Error at 'fun': Only anonymous lambda expressions are expected here.", msg);
         }
 
         [Fact]
@@ -84,7 +84,7 @@
             Assert.True(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
             var msg = outputMessages.First();
-            Assert.Contains("[line 2] Error at 'fun': Expect expression.", msg);
+            Assert.Contains("[line 2] Error at 'fun': Only anonymous lambda expressions are expected here.", msg);
         }
 
         [Fact]

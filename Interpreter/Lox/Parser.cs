@@ -53,7 +53,7 @@ namespace Lox
             _errorLogger = errorLogger;
         }
 
-        public ImmutableList<Stmt> Parse()
+        public ImmutableList<Decl> Parse()
         {
             return Program().ToImmutableList();
         }
@@ -61,7 +61,7 @@ namespace Lox
         #region Lox grammar implementation
 
         // program → declaration* EOF ;
-        private IEnumerable<Stmt> Program()
+        private IEnumerable<Decl> Program()
         {
             while (!IsAtEnd())
             {
@@ -76,7 +76,7 @@ namespace Lox
         #region Declarations
 
         // declaration → funDecl | varDecl | statement ;
-        private Stmt? Declaration()
+        private Decl? Declaration()
         {
             try
             {
@@ -99,15 +99,15 @@ namespace Lox
         }
 
         // funDecl → "fun" IDENTIFIER fnExpression ;
-        private FunctionDeclaration FunDeclaration(string kind)
+        private FunDecl FunDeclaration(string kind)
         {
             var name = Consume(IDENTIFIER, $"Expect {kind} name.");
             var fnExpr = FnExpression(kind);
-            return new FunctionDeclaration(name, fnExpr);
+            return new FunDecl(name, fnExpr);
         }
 
         // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
-        private VarDeclaration VarDeclaration()
+        private VarDecl VarDeclaration()
         {
             var name = Consume(IDENTIFIER, "Expect variable name.");
             Expr? initializer = null;
@@ -117,7 +117,7 @@ namespace Lox
             }
 
             _ = Consume(SEMICOLON, "Expect ';' after variable declaration.");
-            return new VarDeclaration(name, initializer);
+            return new VarDecl(name, initializer);
         }
 
         #endregion
@@ -178,7 +178,7 @@ namespace Lox
         // block → "{" declaration* "}" ;
         private BlockStatement BlockStatement()
         {
-            var statements = new List<Stmt>();
+            var statements = new List<Decl>();
             while (!Check(RIGHT_BRACE) && !IsAtEnd())
             {
                 var declaration = Declaration();
@@ -221,7 +221,7 @@ namespace Lox
         private Stmt ForStatement()
         {
             Consume(LEFT_PAREN, "Expect '(' after 'for'.");
-            Stmt? initializer;
+            Decl? initializer;
             if (Match(SEMICOLON))
             {
                 initializer = null;
@@ -246,13 +246,6 @@ namespace Lox
                 Consume(SEMICOLON, "Expect ';' after loop condition.");
             }
 
-            //Expr? condition = null;
-            //if (!Check(RIGHT_PAREN))
-            //{
-            //    condition = Expression();
-            //}
-            //Consume(SEMICOLON, "Expect ';' after loop condition.");
-
             Expr? increment = null;
             if (!Check(RIGHT_PAREN))
             {
@@ -260,17 +253,14 @@ namespace Lox
             }
             Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
             var body = Statement();
-            if (increment is not null)
-            {
-                body = new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
-            }
+            body = increment is null ? new BlockStatement((List<Stmt>)[body]) : new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
 
             condition ??= new LiteralExpr(true);
             body = new WhileStatement(condition, body);
 
             if (initializer is not null)
             {
-                body = new BlockStatement((List<Stmt>)[initializer, body]);
+                body = new BlockStatement((List<Decl>)[initializer, body]);
             }
 
             return body;
@@ -433,11 +423,15 @@ namespace Lox
             return new CallExpr(callee, paren, arguments);
         }
 
-        // primary → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | IDENTIFIER | fnExpression ;
+        // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER | fnExpression ;
         private Expr Primary()
         {
             if (Match(FUN))
             {
+                if (Check(IDENTIFIER))
+                {
+                    throw Error(Previous(), "Only anonymous lambda expressions are expected here.");
+                }
                 return FnExpression("function");
             }
 

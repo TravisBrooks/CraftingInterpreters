@@ -1,5 +1,4 @@
-﻿using Lox.Callable;
-using Lox.Exception;
+﻿using Lox.Exception;
 
 namespace Lox.InterpreterVisitors
 {
@@ -7,15 +6,18 @@ namespace Lox.InterpreterVisitors
     {
         private readonly IConsole _console;
         private readonly EnvironmentContext _environmentContext;
+        private readonly Func<DeclarationVisitor> _declarationVisitorFn;
         private readonly ExpressionVisitor _expressionVisitor;
 
         public StatementVisitor(
             IConsole console,
             EnvironmentContext environmentContext,
+            Func<DeclarationVisitor> declarationVisitor,
             ExpressionVisitor expressionVisitor)
         {
             _console = console;
             _environmentContext = environmentContext;
+            _declarationVisitorFn = declarationVisitor;
             _expressionVisitor = expressionVisitor;
         }
 
@@ -25,13 +27,11 @@ namespace Lox.InterpreterVisitors
             {
                 ExprStatement es => ExprStmtVisitor(es.Expression),
                 PrintStatement ps => PrintStmtVisitor(ps.Expression),
-                VarDeclaration vs => VarStmtVisitor(vs.Name, vs.Initializer),
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
                 WhileStatement ws => WhileStmtVisitor(ws),
                 BreakStatement => throw new BreakException(),
                 ContinueStatement => throw new ContinueException(),
-                FunctionDeclaration fs => FuncStmtVisitor(fs),
                 ReturnStatement rs => throw new ReturnException(_expressionVisitor.Evaluate(rs.Value)),
                 _ => throw new RuntimeException(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
@@ -54,18 +54,6 @@ namespace Lox.InterpreterVisitors
         {
             var val = _expressionVisitor.Evaluate(expr);
             _console.WriteLine(Stringify(val));
-            return Unit.Value;
-        }
-
-        private Unit VarStmtVisitor(Token name, Expr? initializer)
-        {
-            object? val = null;
-            if (initializer is not null)
-            {
-                val = _expressionVisitor.Evaluate(initializer);
-            }
-
-            _environmentContext.Environment.Define(name.Lexeme, val);
             return Unit.Value;
         }
 
@@ -102,29 +90,22 @@ namespace Lox.InterpreterVisitors
                 }
                 catch (ContinueException)
                 {
-                    // technically i could call continue here, but that would be redundant since it's the end of the loop body
+                    // technically I could call continue here, but that would be redundant since it's the end of the loop body
                 }
             }
             return Unit.Value;
         }
 
-        private Unit FuncStmtVisitor(FunctionDeclaration fs)
-        {
-            var fnName = fs.Name.Lexeme;
-            var fn = new LoxFunction(_environmentContext, fnName, fs.FuncExpr);
-            _environmentContext.Environment.Define(fnName, fn);
-            return Unit.Value;
-        }
-
         #endregion
 
-        private void ExecuteBlock(IEnumerable<Stmt> statements)
+        private void ExecuteBlock(IEnumerable<Decl> statements)
         {
             Environment.ExecuteInScope(_environmentContext, () => 
             {
-                foreach (var stmt in statements)
+                var declVisitor = _declarationVisitorFn();
+                foreach (var decl in statements)
                 {
-                    stmt.Accept(this);
+                    decl.Accept(declVisitor);
                 }
             });
         }

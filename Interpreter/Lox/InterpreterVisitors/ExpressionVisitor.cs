@@ -36,12 +36,7 @@ namespace Lox.InterpreterVisitors
 
         public object? Evaluate(Expr? expr)
         {
-            if (expr is null)
-            {
-                throw new RuntimeException(null, "The expression was nil");
-            }
-
-            return expr.Accept(this);
+            return expr?.Accept(this);
         }
 
         internal static bool IsTruthy(object? obj)

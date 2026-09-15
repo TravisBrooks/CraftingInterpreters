@@ -101,14 +101,14 @@ namespace Lox
             var scanner = new Scanner(_errorLogger, loxCode);
             var tokens = scanner.ScanTokens();
             var parser = new Parser(_errorLogger, tokens);
-            var statements = parser.Parse();
+            var declarations = parser.Parse();
             // RuntimeError only gets called by Interpreter.Interpret so no need to check for that here.
             if (_errorLogger.HadError())
             {
                 return;
             }
 
-            _interpreter.Interpret(statements);
+            _interpreter.Interpret(declarations);
         }
 
     }

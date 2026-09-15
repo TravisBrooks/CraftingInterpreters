@@ -1,6 +1,6 @@
 ﻿namespace Lox
 {
-    public abstract record Stmt : IAstNode
+    public abstract record Stmt : Decl, IAstNode
     {
         public TResult Accept<TResult>(IVisitor<Stmt, TResult> visitor)
         {
@@ -19,15 +19,11 @@
         }
     }
 
-    public record FunctionDeclaration(Token Name, FuncExpr FuncExpr) : Stmt;
-
-    public record VarDeclaration(Token Name, Expr? Initializer) : Stmt;
-
     public record ExprStatement(Expr Expression) : Stmt;
 
     public record PrintStatement(Expr Expression) : Stmt;
 
-    public record BlockStatement(IEnumerable<Stmt> Statements) : Stmt;
+    public record BlockStatement(IEnumerable<Decl> Statements) : Stmt;
 
     public record IfStatement(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt;
 

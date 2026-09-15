@@ -230,14 +230,6 @@ namespace Lox
                 }
             }
 
-            // The book allowed various characters after a number that were turned into an identifier token. That was probably an oversight.
-            var allowedNextChars = new[] { ' ', '\r', '\t', '\n', ')', '}', ']', ';', '\0', '+', '-', '*', '/' };
-            if (!allowedNextChars.Contains(Peek()))
-            {
-                _errorLogger.ReportError(Peek(), "Invalid character after number.");
-                return;
-            }
-
             AddToken(NUMBER, double.Parse(_source.Substring(_start, _current - _start)));
         }
 

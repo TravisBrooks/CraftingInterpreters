@@ -62,7 +62,7 @@
             var outputMessages = output.OutputMessagesNoStatus();
             Assert.Single(outputMessages);
             var msg = outputMessages.First();
-            Assert.Contains("[line 2] Error at 'fun': Expect expression.", msg);
+            Assert.Contains("[line 2] Error at 'fun': Only anonymous lambda expressions are expected here.", msg);
         }
 
         [Fact]
@@ -194,10 +194,7 @@
             Assert.Contains("[line 3] Error at ')': Expect ';' after expression.", msg2);
         }
 
-        /// <summary>
-        /// There is a bug here when running the bar() method. Running bar() in isolation does not cause an error so it seems to be some variable shadowing issue.
-        /// </summary>
-        [Fact(Skip = "Bug in variable shadowing, might get resolved by changes in chapter 11?")]
+        [Fact]
         public void Syntax()
         {
             var source = """
