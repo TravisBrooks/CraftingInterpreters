@@ -3,7 +3,7 @@ using static Lox.TokenType;
 
 namespace Lox
 {
-    internal class Scanner
+    public class Scanner
     {
         private static readonly Dictionary<string, TokenType> Keywords = new()
         {
@@ -28,15 +28,15 @@ namespace Lox
         };
 
         private readonly ErrorLogger _errorLogger;
-        private readonly string _source;
+        private readonly string _loxCode;
         private readonly List<Token> _tokens;
         private int _current;
         private int _line;
         private int _start;
 
-        public Scanner(ErrorLogger errorLogger, string source)
+        public Scanner(ErrorLogger errorLogger, string loxCode)
         {
-            _source = source;
+            _loxCode = loxCode;
             _tokens = [];
             _line = 1;
             _errorLogger = errorLogger;
@@ -57,7 +57,7 @@ namespace Lox
 
         private bool IsAtEnd()
         {
-            return _current >= _source.Length;
+            return _current >= _loxCode.Length;
         }
 
         private void ScanToken()
@@ -156,13 +156,13 @@ namespace Lox
 
         private char Advance()
         {
-            return _source[_current++];
+            return _loxCode[_current++];
         }
 
         private void AddToken(TokenType tokenType, object? literal = null)
         {
             // Slight difference from book because java's substring takes 2 indexes and c# takes start index and length.
-            var txt = _source.Substring(_start, _current - _start);
+            var txt = _loxCode.Substring(_start, _current - _start);
             _tokens.Add(new Token(tokenType, txt, literal, _line));
         }
 
@@ -173,7 +173,7 @@ namespace Lox
                 return false;
             }
 
-            var isMatch = _source[_current] == expected;
+            var isMatch = _loxCode[_current] == expected;
             if (isMatch)
             {
                 _current++;
@@ -184,7 +184,7 @@ namespace Lox
 
         private char Peek()
         {
-            return IsAtEnd() ? '\0' : _source[_current];
+            return IsAtEnd() ? '\0' : _loxCode[_current];
         }
 
         private void String()
@@ -209,7 +209,7 @@ namespace Lox
             Advance();
 
             // Trim the surrounding quotes
-            var value = _source.Substring(_start + 1, _current - _start - 2);
+            var value = _loxCode.Substring(_start + 1, _current - _start - 2);
             AddToken(STRING, value);
         }
 
@@ -230,17 +230,17 @@ namespace Lox
                 }
             }
 
-            AddToken(NUMBER, double.Parse(_source.Substring(_start, _current - _start)));
+            AddToken(NUMBER, double.Parse(_loxCode.Substring(_start, _current - _start)));
         }
 
         private char PeekNext()
         {
-            if (_current + 1 >= _source.Length)
+            if (_current + 1 >= _loxCode.Length)
             {
                 return '\0';
             }
 
-            return _source[_current + 1];
+            return _loxCode[_current + 1];
         }
 
         private void Identifier()
@@ -250,7 +250,7 @@ namespace Lox
                 Advance();
             }
 
-            var txt = _source.Substring(_start, _current - _start);
+            var txt = _loxCode.Substring(_start, _current - _start);
             AddToken(Keywords.GetValueOrDefault(txt, IDENTIFIER));
         }
     }

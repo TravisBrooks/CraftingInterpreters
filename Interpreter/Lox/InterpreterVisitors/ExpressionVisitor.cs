@@ -53,17 +53,12 @@ namespace Lox.InterpreterVisitors
         private object? VisitUnary(UnaryExpr u)
         {
             var right = Evaluate(u.Right);
-            if (right is not null)
+            return u.Operator.TokenType switch
             {
-                return u.Operator.TokenType switch
-                {
-                    BANG => !IsTruthy(right),
-                    MINUS => CheckOperandIsNumber(u.Operator, right, d => -d),
-                    _ => throw new RuntimeException(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
-                };
-            }
-
-            return null;
+                BANG => !IsTruthy(right),
+                MINUS => CheckOperandIsNumber(u.Operator, right, d => -d),
+                _ => throw new RuntimeException(u.Operator, $"Unknown unary operator: {u.Operator.TokenType}")
+            };
         }
 
         private object? VisitBinary(BinaryExpr b)
@@ -88,6 +83,8 @@ namespace Lox.InterpreterVisitors
 
             static object? VisitBinaryPlus(object? lhs, object? rhs, Token op)
             {
+                // I found it convenient to be able to concatenate strings and numbers, which differs slightly from the book, but
+                // I didn't go overboard with it to follow C#'s pattern of silently calling ToString() on anything to force it into a string
                 return lhs switch
                 {
                     double ls when rhs is double rs => ls + rs,
@@ -178,6 +175,11 @@ namespace Lox.InterpreterVisitors
             {
                 null when rhs is null => true,
                 null => false,
+
+                // Matches if it's a double AND is NaN
+                double.NaN => false,
+                _ when rhs is double.NaN => false,
+
                 _ => lhs.Equals(rhs)
             };
         }

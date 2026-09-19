@@ -8,11 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="LoxFiles\many.lox" />
     <None Remove="LoxFiles\too_many_arguments.lox" />
     <None Remove="LoxFiles\too_many_parameters.lox" />
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="LoxFiles\many.lox" />
     <EmbeddedResource Include="LoxFiles\too_many_arguments.lox" />
     <EmbeddedResource Include="LoxFiles\too_many_parameters.lox" />
   </ItemGroup>
