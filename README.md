@@ -1,2 +1,2 @@
-[![Build Status](https://github.com/TravisBrooks/CraftingInterpreters/actions/workflows/dotnet.yml/badge.svg](https://github.com/TravisBrooks/CraftingInterpreters/actions)<br>
+[![Build Status](https://github.com/TravisBrooks/CraftingInterpreters/actions/workflows/dotnet.yml/badge.svg)](https://github.com/TravisBrooks/CraftingInterpreters/actions)<br>
 I'm following along with the book Crafting Interpreters by Robert Nystrom. See https://craftinginterpreters.com/ to read it yourself.
