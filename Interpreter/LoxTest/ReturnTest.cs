@@ -50,7 +50,7 @@
             Assert.Equal(["ok"], outputMessages);
         }
 
-        [Fact(Skip = "This error message is handled by the resolver, which i do not have yet because i haven't gotten that far in the book.")]
+        [Fact(Skip = "Haven't implemented Resolver yet")]
         public void AtTopLevel()
         {
             var source = """

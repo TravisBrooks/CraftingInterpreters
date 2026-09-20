@@ -180,7 +180,7 @@ namespace LoxTest
             var (tokens, output) = Scan(source);
             Assert.False(output.HasOutputError());
 
-            // The escaped quotes look a little odd, its because scanner uses substrings of the source code so includes the quotes in the Lexeme
+            // The escaped quotes look a little odd, it's because scanner uses substrings of the source code so includes the quotes in the Lexeme
             Assert.Equal(
                 [
                 new Token(TokenType.STRING, "\"\"", string.Empty, 1),

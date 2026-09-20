@@ -62,6 +62,7 @@
             var outputMessages = output.OutputMessagesNoStatus();
             Assert.Single(outputMessages);
             var msg = outputMessages.First();
+            // My error message differs slightly because I added lambda expressions
             Assert.Contains("[line 2] Error at 'fun': Only anonymous lambda expressions are expected here.", msg);
         }
 

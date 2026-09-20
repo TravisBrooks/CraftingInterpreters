@@ -35,9 +35,6 @@ namespace LoxTest
             Assert.Equal(["nil"], outputMessages);
         }
 
-        /// <summary>
-        /// The error messages I'm getting seem wildly off, like even line number makes no sense, def seems like an actual bug here...
-        /// </summary>
         [Fact]
         public void ExtraArguments()
         {
@@ -181,9 +178,6 @@ namespace LoxTest
             Assert.Equal(["hello world"], outputMessages);
         }
 
-        /// <summary>
-        /// The error messages I'm getting seem wildly off, like even line number makes no sense, def seems like an actual bug here...
-        /// </summary>
         [Fact]
         public void Parameters()
         {
@@ -275,6 +269,28 @@ namespace LoxTest
             var outputMessages = output.OutputMessagesNoStatus();
             var msg = outputMessages.Single();
             Assert.Contains("Error at 'a': Can't have more than " + Parser.MaxFuncParameterCount + " parameters.", msg);
+        }
+
+        /// <summary>
+        /// The author put this in as a standalone file not grouped by a directory, but it seems to go along with function testing
+        /// </summary>
+        [Fact]
+        public void UnexpectedCharacter()
+        {
+            var source = """
+                         // [line 3] Error: Unexpected character.
+                         // [java line 3] Error at 'b': Expect ')' after arguments.
+                         foo(a | b);
+                         """;
+            var output = Interpret(source);
+            Assert.True(output.HasOutputError());
+            var outputMessages = output.OutputMessages;
+
+            Assert.True(outputMessages[0].IsError);
+            Assert.Equal("ERROR [line 3] Error: Unexpected character: |", outputMessages[0].Message);
+
+            Assert.True(outputMessages[1].IsError);
+            Assert.Contains("ERROR [line 3] Error at 'b': Expect ')' after arguments.", outputMessages[1].Message);
         }
     }
 }

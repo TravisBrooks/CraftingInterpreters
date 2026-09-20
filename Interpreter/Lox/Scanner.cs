@@ -147,7 +147,7 @@ namespace Lox
                     }
                     else
                     {
-                        _errorLogger.ReportError(Peek(), $"Unexpected character: {c}");
+                        _errorLogger.ReportError(_line, $"Unexpected character: {c}");
                     }
 
                     break;
