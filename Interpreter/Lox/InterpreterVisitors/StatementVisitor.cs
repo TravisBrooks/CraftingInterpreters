@@ -30,6 +30,7 @@ namespace Lox.InterpreterVisitors
                 BlockStatement bs => BlockStmtVisitor(bs),
                 IfStatement i => IfStmtVisitor(i),
                 WhileStatement ws => WhileStmtVisitor(ws),
+                ForStmt fs => ForStmtVisitor(fs),
                 BreakStatement => throw new BreakException(),
                 ContinueStatement => throw new ContinueException(),
                 ReturnStatement rs => throw new ReturnException(_expressionVisitor.Evaluate(rs.Value)),
@@ -59,7 +60,7 @@ namespace Lox.InterpreterVisitors
 
         private Unit BlockStmtVisitor(BlockStatement bs)
         {
-            ExecuteBlock(bs.Statements);
+            ExecuteBlock(bs.Declarations);
             return Unit.Value;
         }
 
@@ -90,7 +91,38 @@ namespace Lox.InterpreterVisitors
                 }
                 catch (ContinueException)
                 {
-                    // technically I could call continue here, but that would be redundant since it's the end of the loop body
+                    // call continue here, its redundant since it's the end of the loop body, but it makes the intention more obvious
+                    continue;
+                }
+            }
+            return Unit.Value;
+        }
+
+        private Unit ForStmtVisitor(ForStmt forStmt)
+        {
+            var declVisitor = _declarationVisitorFn();
+            forStmt.Initializer?.Accept(declVisitor);
+            while (true)
+            {
+                if (forStmt.Condition is not null && !ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(forStmt.Condition)))
+                {
+                    break;
+                }
+                try
+                {
+                    forStmt.Body.Accept(this);
+                }
+                catch (BreakException)
+                {
+                    break;
+                }
+                catch (ContinueException)
+                {
+                    // fall through to increment
+                }
+                if (forStmt.Increment is not null)
+                {
+                    _expressionVisitor.Evaluate(forStmt.Increment);
                 }
             }
             return Unit.Value;
@@ -98,12 +130,12 @@ namespace Lox.InterpreterVisitors
 
         #endregion
 
-        private void ExecuteBlock(IEnumerable<Decl> statements)
+        private void ExecuteBlock(IEnumerable<Decl> declarations)
         {
             Environment.ExecuteInScope(_environmentContext, () => 
             {
                 var declVisitor = _declarationVisitorFn();
-                foreach (var decl in statements)
+                foreach (var decl in declarations)
                 {
                     decl.Accept(declVisitor);
                 }

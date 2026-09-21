@@ -23,15 +23,17 @@
 
     public record PrintStatement(Expr Expression) : Stmt;
 
-    public record BlockStatement(IEnumerable<Decl> Statements) : Stmt;
+    public record BlockStatement(IEnumerable<Decl> Declarations) : Stmt;
 
     public record IfStatement(Expr Condition, Stmt ThenBranch, Stmt? ElseBranch) : Stmt;
 
     public record WhileStatement(Expr Condition, Stmt Body) : Stmt;
 
-    public record BreakStatement : Stmt;
+    public record ForStmt(Decl? Initializer, Expr? Condition, Expr? Increment, Stmt Body) : Stmt;
 
-    public record ContinueStatement : Stmt;
+    public record BreakStatement(Token BreakToken) : Stmt;
+
+    public record ContinueStatement(Token ContinueToken) : Stmt;
 
     public record ReturnStatement(Token Keyword, Expr? Value) : Stmt;
 }

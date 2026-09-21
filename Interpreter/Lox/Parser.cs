@@ -45,6 +45,8 @@ namespace Lox
         private readonly List<Token> _tokens;
         private int _current;
         private readonly ErrorLogger _errorLogger;
+        private int _loopDepth = 0;
+        private int _functionDepth = 0;
 
         public Parser(ErrorLogger errorLogger, IEnumerable<Token> tokens)
         {
@@ -213,12 +215,20 @@ namespace Lox
             Consume(LEFT_PAREN, "Expect '(' after 'while'.");
             var condition = Expression();
             Consume(RIGHT_PAREN, "Expect ')' after condition.");
-            var body = Statement();
-            return new WhileStatement(condition, body);
+            _loopDepth++;
+            try
+            {
+                var body = Statement();
+                return new WhileStatement(condition, body);
+            }
+            finally
+            {
+                _loopDepth--;
+            }
         }
 
         // forStmt → "for" "(" ( varDecl | exprStmt | ";" ) expression? ";" expression? ")" statement ;        
-        private Stmt ForStatement()
+        private ForStmt ForStatement()
         {
             Consume(LEFT_PAREN, "Expect '(' after 'for'.");
             Decl? initializer;
@@ -252,32 +262,41 @@ namespace Lox
                 increment = Expression();
             }
             Consume(RIGHT_PAREN, "Expect ')' after for clauses.");
-            var body = Statement();
-            body = increment is null ? new BlockStatement((List<Stmt>)[body]) : new BlockStatement((List<Stmt>)[body, new ExprStatement(increment)]);
 
-            condition ??= new LiteralExpr(true);
-            body = new WhileStatement(condition, body);
-
-            if (initializer is not null)
+            _loopDepth++;
+            try
             {
-                body = new BlockStatement((List<Decl>)[initializer, body]);
+                var body = Statement();
+                return new ForStmt(initializer, condition, increment, body);
             }
-
-            return body;
+            finally
+            {
+                _loopDepth--;
+            }
         }
 
         // breakStmt → "break" ";" ;
         private BreakStatement BreakStatement()
         {
+            var breakToken = Previous();
+            if (_loopDepth == 0 || _functionDepth > 0)
+            {
+                throw Error(breakToken, "Cannot use 'break' outside of a loop.");
+            }
             Consume(SEMICOLON, "Expect ';' after 'break'.");
-            return new BreakStatement();
+            return new BreakStatement(breakToken);
         }
 
         // continueStmt → "continue" ";" ;
         private ContinueStatement ContinueStatement()
         {
+            var continueToken = Previous();
+            if (_loopDepth == 0 || _functionDepth > 0)
+            {
+                throw Error(continueToken, "Cannot use 'continue' outside of a loop.");
+            }
             Consume(SEMICOLON, "Expect ';' after 'continue'.");
-            return new ContinueStatement();
+            return new ContinueStatement(continueToken);
         }
 
         // returnStmt → "return" expression? ";" ;
@@ -489,8 +508,17 @@ namespace Lox
             }
             _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
             _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
-            var body = BlockStatement();
-            return new FuncExpr(parameters, body);
+
+            _functionDepth++;
+            try
+            {
+                var body = BlockStatement();
+                return new FuncExpr(parameters, body);
+            }
+            finally
+            {
+                _functionDepth--;
+            }
         }
 
         #endregion
