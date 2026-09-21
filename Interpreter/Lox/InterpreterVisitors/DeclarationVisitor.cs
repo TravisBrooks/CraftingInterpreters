@@ -45,7 +45,7 @@ namespace Lox.InterpreterVisitors
         private Unit FuncDeclVisitor(FunDecl fd)
         {
             var fnName = fd.Name.Lexeme;
-            var fn = new LoxFunction(_environmentContext, fnName, fd.FuncExpr);
+            var fn = new LoxFunction(_environmentContext, fnName, fd.FunExpr);
             _environmentContext.Environment.Define(fnName, fn);
             return Unit.Value;
         }

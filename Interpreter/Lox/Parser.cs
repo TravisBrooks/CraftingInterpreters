@@ -490,7 +490,7 @@ namespace Lox
         }
 
         // fnExpression → "(" parameters? ")" block ;
-        private FuncExpr FnExpression(string kind)
+        private FunExpr FnExpression(string kind)
         {
             _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
             var parameters = new List<Token>();
@@ -513,7 +513,7 @@ namespace Lox
             try
             {
                 var body = BlockStatement();
-                return new FuncExpr(parameters, body);
+                return new FunExpr(parameters, body);
             }
             finally
             {

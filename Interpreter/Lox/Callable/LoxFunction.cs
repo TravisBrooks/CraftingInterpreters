@@ -7,13 +7,13 @@ namespace Lox.Callable
     {
         private readonly EnvironmentContext _environmentContext;
         private readonly string? _name;
-        private readonly FuncExpr _declaration;
+        private readonly FunExpr _declaration;
         private readonly Environment _closure;
 
         public LoxFunction(
             EnvironmentContext environmentContext,
             string? name,
-            FuncExpr declaration)
+            FunExpr declaration)
         {
             _environmentContext = environmentContext;
             _name = name;

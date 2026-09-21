@@ -19,7 +19,7 @@
         }
     }
 
-    public record FunDecl(Token Name, FuncExpr FuncExpr) : Decl;
+    public record FunDecl(Token Name, FunExpr FunExpr) : Decl;
 
     public record VarDecl(Token Name, Expr? Initializer) : Decl;
 }
