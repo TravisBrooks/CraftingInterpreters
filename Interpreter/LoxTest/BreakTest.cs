@@ -63,6 +63,28 @@
             Assert.Equal(["0", "10", "1", "11", "2", "12"], outputMessages);
         }
 
+        [Fact]
+        public void NestedLoopInFunction()
+        {
+            var source = """
+                         for(var i=0; i< 4; i = i + 1){
+                            fun funcInLoop(){
+                                for(var j = i; j < 3; j = j + 1){
+                                    if(j > 1){
+                                        break; // this is safe because the break is inside a loop in the func
+                                    }
+                                    print i + j;
+                                }
+                            }
+                            funcInLoop();
+                         }
+                         """;
+            var output = Interpret(source);
+            Assert.False(output.HasOutputError());
+            var outputMessages = output.OutputMessagesNoStatus();
+            Assert.Equal(["0", "1", "2"], outputMessages);
+        }
+
         #endregion
 
         #region Sad Path Tests

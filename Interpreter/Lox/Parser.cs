@@ -45,8 +45,8 @@ namespace Lox
         private readonly List<Token> _tokens;
         private int _current;
         private readonly ErrorLogger _errorLogger;
-        private int _loopDepth = 0;
-        private int _functionDepth = 0;
+        private int _loopDepth;
+        private int _loopDepthWhenEnteringFunction;
 
         public Parser(ErrorLogger errorLogger, IEnumerable<Token> tokens)
         {
@@ -279,7 +279,7 @@ namespace Lox
         private BreakStatement BreakStatement()
         {
             var breakToken = Previous();
-            if (_loopDepth == 0 || _functionDepth > 0)
+            if (_loopDepth == _loopDepthWhenEnteringFunction)
             {
                 throw Error(breakToken, "Cannot use 'break' outside of a loop.");
             }
@@ -291,7 +291,7 @@ namespace Lox
         private ContinueStatement ContinueStatement()
         {
             var continueToken = Previous();
-            if (_loopDepth == 0 || _functionDepth > 0)
+            if (_loopDepth == _loopDepthWhenEnteringFunction)
             {
                 throw Error(continueToken, "Cannot use 'continue' outside of a loop.");
             }
@@ -509,7 +509,8 @@ namespace Lox
             _ = Consume(RIGHT_PAREN, $"Expect ')' after parameters.");
             _ = Consume(LEFT_BRACE, $"Expect '{{' before {kind} body.");
 
-            _functionDepth++;
+            var prevLoopDepth = _loopDepthWhenEnteringFunction;
+            _loopDepthWhenEnteringFunction = _loopDepth;
             try
             {
                 var body = BlockStatement();
@@ -517,7 +518,7 @@ namespace Lox
             }
             finally
             {
-                _functionDepth--;
+                _loopDepthWhenEnteringFunction = prevLoopDepth;
             }
         }
 
