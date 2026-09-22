@@ -132,6 +132,22 @@ namespace LoxTest
         }
 
         [Fact]
+        public void MissingParameters()
+        {
+            var source = """
+                         fun foo { print "no parameters"; };
+                         """;
+            var output = Interpret(source);
+            Assert.True(output.HasOutputError());
+
+            Assert.True(output.OutputMessages[0].IsError);
+            Assert.Contains("Expect '(' after function.", output.OutputMessages[0].Message);
+
+            Assert.True(output.OutputMessages[1].IsError);
+            Assert.Contains("Expect expression.", output.OutputMessages[1].Message);
+        }
+
+        [Fact]
         public void MutualRecursion()
         {
             var source = """

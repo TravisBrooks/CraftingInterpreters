@@ -123,6 +123,25 @@
             Assert.Contains("Cannot use 'break' outside of a loop.", msg);
         }
 
+        [Fact]
+        public void BreakInsideLambdaInsideLoop()
+        {
+            var source = """
+                         while(true){
+                            var funcInLoop = fun(){
+                                break; // This break is in a lambda expression that coincidentally is in a loop, forbidden
+                            };
+                            funcInLoop();
+                         }
+                         """;
+            var output = Interpret(source);
+            Assert.True(output.HasOutputError());
+            var outputMessages = output.OutputMessagesNoStatus();
+            Assert.Single(outputMessages);
+            var msg = outputMessages.First();
+            Assert.Contains("Cannot use 'break' outside of a loop.", msg);
+        }
+
         [Fact(Skip = "Haven't implemented classes yet")]
         public void CannotBreakInsideClass()
         {

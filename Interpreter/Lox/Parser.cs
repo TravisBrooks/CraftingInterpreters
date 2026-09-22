@@ -451,7 +451,7 @@ namespace Lox
                 {
                     throw Error(Previous(), "Only anonymous lambda expressions are expected here.");
                 }
-                return FnExpression("function");
+                return FnExpression("lambda expression");
             }
 
             if (Match(FALSE))
@@ -492,7 +492,7 @@ namespace Lox
         // fnExpression → "(" parameters? ")" block ;
         private FunExpr FnExpression(string kind)
         {
-            _ = Consume(LEFT_PAREN, $"Expect '(' after {kind} name.");
+            _ = Consume(LEFT_PAREN, $"Expect '(' after {kind}.");
             var parameters = new List<Token>();
             if (!Check(RIGHT_PAREN))
             {
