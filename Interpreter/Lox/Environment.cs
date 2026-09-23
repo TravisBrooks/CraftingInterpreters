@@ -1,4 +1,5 @@
 ﻿using Lox.Exception;
+using System.Collections.ObjectModel;
 
 namespace Lox
 {
@@ -19,28 +20,6 @@ namespace Lox
             _values[name] = value;
         }
 
-        public void DefineGlobal(string name, object? value)
-        {
-            if (Enclosing is not null)
-            {
-                Enclosing.DefineGlobal(name, value);
-            }
-            else
-            {
-                _values[name] = value;
-            }
-        }
-
-        public object? GetGlobal(string name)
-        {
-            if (Enclosing is not null)
-            {
-                return Enclosing.GetGlobal(name);
-            }
-
-            return _values.GetValueOrDefault(name);
-        }
-
         public object? Get(Token name)
         {
             if (_values.TryGetValue(name.Lexeme, out var value))
@@ -52,6 +31,26 @@ namespace Lox
                 return Enclosing.Get(name);
             }
             throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
+        }
+
+        public void DefineGlobal(string name, object? value)
+        {
+            _GetGlobalEnv()._values[name] = value;
+        }
+
+        public object? GetGlobal(string name)
+        {
+            return _GetGlobalEnv()._values.GetValueOrDefault(name);
+        }
+
+        private Environment _GetGlobalEnv()
+        {
+            var env = this;
+            while (env.Enclosing is not null)
+            {
+                env = env.Enclosing;
+            }
+            return env;
         }
 
         public void Assign(Token name, object? value)
@@ -83,6 +82,15 @@ namespace Lox
             {
                 ctxt.Environment = previous;
             }
+        }
+
+        /// <summary>
+        /// Exposes the internal state in way that cannot be mutated, here for testing purposes
+        /// </summary>
+        /// <returns></returns>
+        public ReadOnlyDictionary<string, object?> GetInternalState()
+        {
+            return new ReadOnlyDictionary<string, object?>(_values);
         }
     }
 }
