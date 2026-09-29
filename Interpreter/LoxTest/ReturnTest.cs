@@ -50,7 +50,7 @@
             Assert.Equal(["ok"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void AtTopLevel()
         {
             var source = """

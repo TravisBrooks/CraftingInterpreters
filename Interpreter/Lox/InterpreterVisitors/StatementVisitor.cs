@@ -25,12 +25,12 @@ namespace Lox.InterpreterVisitors
         {
             return stmt switch
             {
-                ExprStatement es => ExprStmtVisitor(es.Expression),
-                PrintStatement ps => PrintStmtVisitor(ps.Expression),
-                BlockStatement bs => BlockStmtVisitor(bs),
-                IfStatement i => IfStmtVisitor(i),
-                WhileStatement ws => WhileStmtVisitor(ws),
-                ForStmt fs => ForStmtVisitor(fs),
+                ExprStatement es => VisitExprStatement(es),
+                PrintStatement ps => VisitPrintStatement(ps),
+                BlockStatement bs => VisitBlockStatement(bs),
+                IfStatement i => VisitIfStatement(i),
+                WhileStatement ws => VisitWhileStatement(ws),
+                ForStmt fs => VisitForStmt(fs),
                 BreakStatement => throw new BreakException(),
                 ContinueStatement => throw new ContinueException(),
                 ReturnStatement rs => throw new ReturnException(_expressionVisitor.Evaluate(rs.Value)),
@@ -40,9 +40,9 @@ namespace Lox.InterpreterVisitors
 
         #region Vistor implementations
 
-        private Unit ExprStmtVisitor(Expr expr)
+        private Unit VisitExprStatement(ExprStatement es)
         {
-            var exprVal = _expressionVisitor.Evaluate(expr);
+            var exprVal = _expressionVisitor.Evaluate(es.Expression);
             if (_environmentContext.LoxMode == LoxMode.INTERACTIVE_MODE)
             {
                 _console.WriteLine(Stringify(exprVal));
@@ -51,20 +51,20 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit PrintStmtVisitor(Expr expr)
+        private Unit VisitPrintStatement(PrintStatement ps)
         {
-            var val = _expressionVisitor.Evaluate(expr);
+            var val = _expressionVisitor.Evaluate(ps.Expression);
             _console.WriteLine(Stringify(val));
             return Unit.Value;
         }
 
-        private Unit BlockStmtVisitor(BlockStatement bs)
+        private Unit VisitBlockStatement(BlockStatement bs)
         {
             ExecuteBlock(bs.Declarations);
             return Unit.Value;
         }
 
-        private Unit IfStmtVisitor(IfStatement ifStmt)
+        private Unit VisitIfStatement(IfStatement ifStmt)
         {
             if (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(ifStmt.Condition)))
             {
@@ -77,7 +77,7 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit WhileStmtVisitor(WhileStatement whileStatement)
+        private Unit VisitWhileStatement(WhileStatement whileStatement)
         {
             while (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(whileStatement.Condition)))
             {
@@ -98,31 +98,46 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit ForStmtVisitor(ForStmt forStmt)
+        private Unit VisitForStmt(ForStmt forStmt)
         {
-            var declVisitor = _declarationVisitorFn();
-            forStmt.Initializer?.Accept(declVisitor);
-            while (true)
+            Environment? previous = null;
+            try
             {
-                if (forStmt.Condition is not null && !ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(forStmt.Condition)))
+                if (forStmt.Initializer is VarDecl)
                 {
-                    break;
+                    previous = _environmentContext.Environment;
+                    _environmentContext.Environment = new Environment(previous);
                 }
-                try
+                var declVisitor = _declarationVisitorFn();
+                forStmt.Initializer?.Accept(declVisitor);
+                while (true)
                 {
-                    forStmt.Body.Accept(this);
+                    if (forStmt.Condition is not null && !ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(forStmt.Condition)))
+                    {
+                        break;
+                    }
+                    try
+                    {
+                        forStmt.Body.Accept(this);
+                    }
+                    catch (BreakException)
+                    {
+                        break;
+                    }
+                    catch (ContinueException)
+                    {
+                        // fall through to increment
+                    }
+                    if (forStmt.Increment is not null)
+                    {
+                        _expressionVisitor.Evaluate(forStmt.Increment);
+                    }
                 }
-                catch (BreakException)
+            }
+            finally{
+                if (previous is not null)
                 {
-                    break;
-                }
-                catch (ContinueException)
-                {
-                    // fall through to increment
-                }
-                if (forStmt.Increment is not null)
-                {
-                    _expressionVisitor.Evaluate(forStmt.Increment);
+                    _environmentContext.Environment = previous;
                 }
             }
             return Unit.Value;

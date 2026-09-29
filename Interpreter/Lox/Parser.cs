@@ -180,18 +180,18 @@ namespace Lox
         // block → "{" declaration* "}" ;
         private BlockStatement BlockStatement()
         {
-            var statements = new List<Decl>();
+            var declarations = new List<Decl>();
             while (!Check(RIGHT_BRACE) && !IsAtEnd())
             {
                 var declaration = Declaration();
                 if (declaration is not null)
                 {
-                    statements.Add(declaration);
+                    declarations.Add(declaration);
                 }
             }
 
             Consume(RIGHT_BRACE, "Expect '}' after block.");
-            return new BlockStatement(statements);
+            return new BlockStatement(declarations);
         }
 
         // ifStmt → "if" "(" expression ")" statement ( "else" statement )? ;
@@ -513,8 +513,8 @@ namespace Lox
             _loopDepthWhenEnteringFunction = _loopDepth;
             try
             {
-                var body = BlockStatement();
-                return new FunExpr(parameters, body);
+                var blockStatement = BlockStatement();
+                return new FunExpr(parameters, blockStatement.Declarations);
             }
             finally
             {

@@ -20,6 +20,16 @@ namespace Lox
             _values[name] = value;
         }
 
+        /// <summary>
+        /// For builtin functions like "clock", adds a value onto the global scope
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
+        public void DefineIntrinsic(string name, object? value)
+        {
+            _GetGlobalEnv().Define(name, value);
+        }
+
         public object? Get(Token name)
         {
             if (_values.TryGetValue(name.Lexeme, out var value))
@@ -33,14 +43,39 @@ namespace Lox
             throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
         }
 
-        public void DefineGlobal(string name, object? value)
+        public object? GetGlobal(Token name)
         {
-            _GetGlobalEnv()._values[name] = value;
+            return _GetGlobalEnv().Get(name);
         }
 
-        public object? GetGlobal(string name)
+        /// <summary>
+        /// For builtin functions like "clock", but will grab any matching name in the global scope
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public object? GetIntrinsic(string name)
         {
             return _GetGlobalEnv()._values.GetValueOrDefault(name);
+        }
+
+        public object? GetAt(int distance, Token name)
+        {
+            var env = Ancestor(distance);
+            if (!env._values.TryGetValue(name.Lexeme, out var val))
+            {
+                throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
+            }
+            return val;
+        }
+
+        private Environment Ancestor(int distance)
+        {
+            var environment = this;
+            for (var i = 0; i < distance; i++)
+            {
+                environment = environment!.Enclosing;
+            }
+            return environment!;
         }
 
         private Environment _GetGlobalEnv()
@@ -68,6 +103,16 @@ namespace Lox
                 return;
             }
             throw new RuntimeException(name, $"Undefined variable '{name.Lexeme}'.");
+        }
+
+        public void AssignAt(int distance, Token name, object? value)
+        {
+            Ancestor(distance)._values[name.Lexeme] = value;
+        }
+
+        public void AssignGlobal(Token name, object? value)
+        {
+            _GetGlobalEnv().Assign(name, value);
         }
 
         public static void ExecuteInScope(EnvironmentContext ctxt, Action action)

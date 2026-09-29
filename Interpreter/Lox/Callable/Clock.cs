@@ -12,7 +12,7 @@ namespace Lox.Callable
             return 0;
         }
 
-        public object? Call(StatementVisitor visitor, List<object?> arguments)
+        public object? Call(DeclarationVisitor visitor, List<object?> arguments)
         {
             return DateTime.Now;
         }

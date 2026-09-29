@@ -56,9 +56,6 @@ namespace LoxTest
         [Fact]
         public void LocalMutualRecursion()
         {
-            // This test from the book is a bit baffling, there is this that is supposed to fail then the extremely similar MutualRecursion test that is supposed to succeed.
-            // The only difference is in this code the functions are defined in a block and the other they're defined in the global scope.
-            // I don't see why that should matter, and my code works just fine for both, so I guess this is a bug in the book?
             var source = """
                          {
                            fun isEven(n) {
@@ -75,9 +72,10 @@ namespace LoxTest
                          }
                          """;
             var output = Interpret(source);
-            Assert.False(output.HasOutputError());
+            Assert.True(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
-            Assert.Equal(["true"], outputMessages);
+            var msg = outputMessages.Single();
+            Assert.Contains("Undefined variable 'isOdd'.", msg);
         }
 
         [Fact]

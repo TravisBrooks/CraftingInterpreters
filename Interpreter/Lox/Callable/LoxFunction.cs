@@ -25,7 +25,7 @@ namespace Lox.Callable
             _closure = _environmentContext.Environment;
         }
 
-        public object? Call(StatementVisitor visitor, List<object?> arguments)
+        public object? Call(DeclarationVisitor visitor, List<object?> arguments)
         {
             // we're not doing anything to this Environment so no need to set it aside.
             var originalEnvironment = _environmentContext.Environment;
@@ -53,29 +53,16 @@ namespace Lox.Callable
             return null;
         }
 
-        /// <summary>
-        /// If there are arguments, we need to enter a new scope and define the parameters in that scope.
-        /// </summary>
-        /// <param name="visitor"></param>
-        /// <param name="arguments"></param>
-        private void CallImplWithArguments(StatementVisitor visitor, List<object?> arguments)
+        private void CallImplWithArguments(DeclarationVisitor visitor, List<object?> arguments)
         {
-            Environment.ExecuteInScope(_environmentContext, () =>
+            for (var i = 0; i < _declaration.Parameters.Count; i++)
             {
-                for (var i = 0; i < _declaration.Parameters.Count; i++)
-                {
-                    _environmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
-                }
-                // The body will be executed in its own inner scope, possibly with nested inner scopes if there are blocks in the body.
-                _ = visitor.Visit(_declaration.Body);
-            });
+                _environmentContext.Environment.Define(_declaration.Parameters[i].Lexeme, arguments[i]);
+            }
+            _ = visitor.Visit(_declaration.Body);
         }
 
-        /// <summary>
-        /// No arguments so no need to create an empty inner scope.
-        /// </summary>
-        /// <param name="visitor"></param>
-        private void CallImplNoArguments(StatementVisitor visitor)
+        private void CallImplNoArguments(DeclarationVisitor visitor)
         {
             _ = visitor.Visit(_declaration.Body);
         }

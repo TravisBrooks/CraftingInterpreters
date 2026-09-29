@@ -2,7 +2,7 @@
 {
     public class VariableTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void CollideWithParameter()
         {
             var source = """
@@ -17,7 +17,7 @@
             Assert.Contains("Error at 'a': Already a variable with this name in this scope.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void DuplicateScope()
         {
             var source = """
@@ -33,7 +33,7 @@
             Assert.Contains("Error at 'a': Already a variable with this name in this scope.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void DuplicateParameter()
         {
             var source = """
@@ -49,7 +49,7 @@
             Assert.Contains("Error at 'arg': Already a variable with this name in this scope.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void EarlyBound()
         {
             var source = """
@@ -316,7 +316,7 @@
             Assert.Equal(["value"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented Resolver yet")]
+        [Fact]
         public void UseLocalInInitializer()
         {
             var source = """

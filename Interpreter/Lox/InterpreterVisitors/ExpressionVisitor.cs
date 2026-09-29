@@ -7,14 +7,17 @@ namespace Lox.InterpreterVisitors
     public class ExpressionVisitor : IVisitor<Expr, object?>
     {
         private readonly EnvironmentContext _environmentContext;
-        private readonly Func<StatementVisitor> _statementVisitorFn;
+        private readonly ResolvedExpressions _resolvedExpressions;
+        private readonly Func<DeclarationVisitor> _declarationVisitorFn;
 
         public ExpressionVisitor(
             EnvironmentContext environmentContext,
-            Func<StatementVisitor> statementVisitorFnFn)
+            ResolvedExpressions resolvedExpressions,
+            Func<DeclarationVisitor> declarationVisitorFnFn)
         {
             _environmentContext = environmentContext;
-            _statementVisitorFn = statementVisitorFnFn;
+            _resolvedExpressions = resolvedExpressions;
+            _declarationVisitorFn = declarationVisitorFnFn;
         }
 
         public object? Visit(Expr expr)
@@ -98,13 +101,27 @@ namespace Lox.InterpreterVisitors
 
         private object? VisitVariableExpr(VariableExpr ve)
         {
-            return _environmentContext.Environment.Get(ve.Name);
+            var distance = _resolvedExpressions.GetDistance(ve);
+            if (distance is null)
+            {
+                return _environmentContext.Environment.GetGlobal(ve.Name);
+            }
+
+            return _environmentContext.Environment.GetAt((int)distance!, ve.Name);
         }
 
         private object? VisitAssign(AssignExpr expr)
         {
             var val = Evaluate(expr.Value);
-            _environmentContext.Environment.Assign(expr.Name, val);
+            var distance = _resolvedExpressions.GetDistance(expr);
+            if (distance is not null)
+            {
+                _environmentContext.Environment.AssignAt((int)distance, expr.Name, val);
+            }
+            else
+            {
+                _environmentContext.Environment.AssignGlobal(expr.Name, val);
+            }
             return val;
         }
 
@@ -139,7 +156,7 @@ namespace Lox.InterpreterVisitors
                 {
                     throw new RuntimeException(call.Paren, $"Expected {fn.Arity()} arguments but got {arguments.Count}.");
                 }
-                return fn.Call(_statementVisitorFn(), arguments);
+                return fn.Call(_declarationVisitorFn(), arguments);
             }
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }

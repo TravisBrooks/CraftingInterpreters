@@ -87,7 +87,7 @@ namespace LoxTest
             var globalKey = "global key";
             var globalValue = "global value";
             // define global should go up the stack of enclosing environments to the global
-            grandChild.DefineGlobal(globalKey, globalValue);
+            grandChild.DefineIntrinsic(globalKey, globalValue);
 
             Assert.Empty(grandChild.GetInternalState());
             Assert.Empty(child.GetInternalState());
@@ -110,7 +110,7 @@ namespace LoxTest
             Assert.Empty(grandChild.GetInternalState());
             Assert.Empty(child.GetInternalState());
             // verify that GetGlobal goes up the stack of enclosing environments to the global
-            var foundValue = grandChild.GetGlobal(globalKey);
+            var foundValue = grandChild.GetIntrinsic(globalKey);
             Assert.Equal(globalValue, foundValue);
         }
 

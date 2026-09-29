@@ -14,8 +14,9 @@ namespace Lox
             services.AddSingleton<DeclarationVisitor>();
             services.AddSingleton<StatementVisitor>();
             services.AddSingleton<ExpressionVisitor>();
+            services.AddSingleton<Resolver>();
+            services.AddSingleton<ResolvedExpressions>();
             services.AddSingleton<Func<DeclarationVisitor>>(sp => sp.GetRequiredService<DeclarationVisitor>);
-            services.AddSingleton<Func<StatementVisitor>>(sp => sp.GetRequiredService<StatementVisitor>);
             services.AddSingleton<IConsole, ConsoleWrapper>();
 
             return services;

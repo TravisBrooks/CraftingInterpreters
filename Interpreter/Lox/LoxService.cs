@@ -7,17 +7,20 @@ namespace Lox
         private readonly IConsole _console;
         private readonly ErrorLogger _errorLogger;
         private readonly EnvironmentContext _environmentContext;
+        private readonly Resolver _resolver;
         private readonly Interpreter _interpreter;
 
         public LoxService(
             IConsole console,
             ErrorLogger errorLogger,
             EnvironmentContext environmentContext,
+            Resolver resolver,
             Interpreter interpreter)
         {
             _console = console;
             _errorLogger = errorLogger;
             _environmentContext = environmentContext;
+            _resolver = resolver;
             _interpreter = interpreter;
         }
 
@@ -94,9 +97,9 @@ namespace Lox
 
         public void Run(string loxCode)
         {
-            if (_environmentContext.Environment.GetGlobal("clock") is null)
+            if (_environmentContext.Environment.GetIntrinsic("clock") is null)
             {
-                _environmentContext.Environment.DefineGlobal("clock", new Clock());
+                _environmentContext.Environment.DefineIntrinsic("clock", new Clock());
             }
             var scanner = new Scanner(_errorLogger, loxCode);
             var tokens = scanner.ScanTokens();
@@ -107,7 +110,12 @@ namespace Lox
             {
                 return;
             }
-
+            _resolver.Resolve(declarations);
+            // The resolver can log errors too...
+            if (_errorLogger.HadError())
+            {
+                return;
+            }
             _interpreter.Interpret(declarations);
         }
 
