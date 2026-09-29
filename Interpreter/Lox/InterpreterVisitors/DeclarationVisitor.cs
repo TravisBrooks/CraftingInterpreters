@@ -32,31 +32,36 @@ namespace Lox.InterpreterVisitors
         {
             return decl switch
             {
-                VarDecl varDecl => VisitVarDecl(varDecl.Name, varDecl.Initializer),
-                FunDecl funDecl => VisitFunDecl(funDecl),
-                Stmt stmt => _statementVisitor.Visit(stmt),
+                VarDecl varDecl => Visit(varDecl),
+                FunDecl funDecl => Visit(funDecl),
+                Stmt stmt => Visit(stmt),
                 _ => throw new RuntimeException(null, $"Unknown declaration type: {decl.GetType().Name}")
             };
         }
 
-        private Unit VisitVarDecl(Token name, Expr? initializer)
+        private Unit Visit(VarDecl varDecl)
         {
             object? val = null;
-            if (initializer is not null)
+            if (varDecl.Initializer is not null)
             {
-                val = _expressionVisitor.Evaluate(initializer);
+                val = _expressionVisitor.Evaluate(varDecl.Initializer);
             }
 
-            _environmentContext.Environment.Define(name.Lexeme, val);
+            _environmentContext.Environment.Define(varDecl.Name.Lexeme, val);
             return Unit.Value;
         }
 
-        private Unit VisitFunDecl(FunDecl fd)
+        private Unit Visit(FunDecl funDecl)
         {
-            var fnName = fd.Name.Lexeme;
-            var fn = new LoxFunction(_environmentContext, fnName, fd.FunExpr);
+            var fnName = funDecl.Name.Lexeme;
+            var fn = new LoxFunction(_environmentContext, fnName, funDecl.FunExpr);
             _environmentContext.Environment.Define(fnName, fn);
             return Unit.Value;
+        }
+
+        private Unit Visit(Stmt stmt)
+        {
+            return _statementVisitor.Visit(stmt);
         }
     }
 }

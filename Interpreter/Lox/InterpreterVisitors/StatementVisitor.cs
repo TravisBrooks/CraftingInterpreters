@@ -25,22 +25,22 @@ namespace Lox.InterpreterVisitors
         {
             return stmt switch
             {
-                ExprStatement es => VisitExprStatement(es),
-                PrintStatement ps => VisitPrintStatement(ps),
-                BlockStatement bs => VisitBlockStatement(bs),
-                IfStatement i => VisitIfStatement(i),
-                WhileStatement ws => VisitWhileStatement(ws),
-                ForStmt fs => VisitForStmt(fs),
-                BreakStatement => throw new BreakException(),
-                ContinueStatement => throw new ContinueException(),
-                ReturnStatement rs => throw new ReturnException(_expressionVisitor.Evaluate(rs.Value)),
+                ExprStatement exprStatement => Visit(exprStatement),
+                PrintStatement printStatement => Visit(printStatement),
+                BlockStatement blockStatement => Visit(blockStatement),
+                IfStatement ifStatement => Visit(ifStatement),
+                WhileStatement whileStatement => Visit(whileStatement),
+                ForStmt forStmt => Visit(forStmt),
+                BreakStatement breakStatement => Visit(breakStatement),
+                ContinueStatement continueStatement => Visit(continueStatement),
+                ReturnStatement returnStatement => Visit(returnStatement),
                 _ => throw new RuntimeException(null, $"Unknown statement type: {stmt.GetType().Name}")
             };
         }
 
         #region Vistor implementations
 
-        private Unit VisitExprStatement(ExprStatement es)
+        private Unit Visit(ExprStatement es)
         {
             var exprVal = _expressionVisitor.Evaluate(es.Expression);
             if (_environmentContext.LoxMode == LoxMode.INTERACTIVE_MODE)
@@ -51,20 +51,20 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit VisitPrintStatement(PrintStatement ps)
+        private Unit Visit(PrintStatement ps)
         {
             var val = _expressionVisitor.Evaluate(ps.Expression);
             _console.WriteLine(Stringify(val));
             return Unit.Value;
         }
 
-        private Unit VisitBlockStatement(BlockStatement bs)
+        private Unit Visit(BlockStatement bs)
         {
             ExecuteBlock(bs.Declarations);
             return Unit.Value;
         }
 
-        private Unit VisitIfStatement(IfStatement ifStmt)
+        private Unit Visit(IfStatement ifStmt)
         {
             if (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(ifStmt.Condition)))
             {
@@ -77,7 +77,7 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit VisitWhileStatement(WhileStatement whileStatement)
+        private Unit Visit(WhileStatement whileStatement)
         {
             while (ExpressionVisitor.IsTruthy(_expressionVisitor.Evaluate(whileStatement.Condition)))
             {
@@ -98,7 +98,7 @@ namespace Lox.InterpreterVisitors
             return Unit.Value;
         }
 
-        private Unit VisitForStmt(ForStmt forStmt)
+        private Unit Visit(ForStmt forStmt)
         {
             Environment? previous = null;
             try
@@ -141,6 +141,21 @@ namespace Lox.InterpreterVisitors
                 }
             }
             return Unit.Value;
+        }
+
+        private Unit Visit(BreakStatement breakStatement)
+        {
+            throw new BreakException();
+        }
+
+        private Unit Visit(ContinueStatement continueStatement)
+        {
+            throw new ContinueException();
+        }
+
+        private Unit Visit(ReturnStatement returnStatement)
+        {
+            throw new ReturnException(_expressionVisitor.Evaluate(returnStatement.Value));
         }
 
         #endregion

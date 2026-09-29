@@ -24,15 +24,15 @@ namespace Lox.InterpreterVisitors
         {
             return expr switch
             {
-                LiteralExpr l => l.Value,
-                GroupingExpr g => Evaluate(g.Expression),
-                UnaryExpr u => VisitUnary(u),
-                BinaryExpr b => VisitBinary(b),
-                VariableExpr v => VisitVariableExpr(v),
-                AssignExpr a => VisitAssign(a),
-                LogicalExpr l => VisitLogical(l),
-                CallExpr c => VisitCall(c),
-                FunExpr f => VisitFuncExpr(f),
+                LiteralExpr literalExpr => Visit(literalExpr),
+                GroupingExpr groupingExpr => Visit(groupingExpr),
+                UnaryExpr unaryExpr => Visit(unaryExpr),
+                BinaryExpr binaryExpr => Visit(binaryExpr),
+                VariableExpr variableExpr => Visit(variableExpr),
+                AssignExpr assignExpr => Visit(assignExpr),
+                LogicalExpr logicalExpr => Visit(logicalExpr),
+                CallExpr callExpr => Visit(callExpr),
+                FunExpr funExpr => Visit(funExpr),
                 _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
         }
@@ -53,7 +53,17 @@ namespace Lox.InterpreterVisitors
             };
         }
 
-        private object? VisitUnary(UnaryExpr u)
+        private object? Visit(LiteralExpr literalExpr)
+        {
+            return literalExpr.Value;
+        }
+
+        private object? Visit(GroupingExpr groupingExpr)
+        {
+            return Evaluate(groupingExpr.Expression);
+        }
+
+        private object? Visit(UnaryExpr u)
         {
             var right = Evaluate(u.Right);
             return u.Operator.TokenType switch
@@ -64,7 +74,7 @@ namespace Lox.InterpreterVisitors
             };
         }
 
-        private object? VisitBinary(BinaryExpr b)
+        private object? Visit(BinaryExpr b)
         {
             var lhs = Evaluate(b.Left);
             var rhs = Evaluate(b.Right);
@@ -99,7 +109,7 @@ namespace Lox.InterpreterVisitors
             }
         }
 
-        private object? VisitVariableExpr(VariableExpr ve)
+        private object? Visit(VariableExpr ve)
         {
             var distance = _resolvedExpressions.GetDistance(ve);
             if (distance is null)
@@ -110,7 +120,7 @@ namespace Lox.InterpreterVisitors
             return _environmentContext.Environment.GetAt((int)distance!, ve.Name);
         }
 
-        private object? VisitAssign(AssignExpr expr)
+        private object? Visit(AssignExpr expr)
         {
             var val = Evaluate(expr.Value);
             var distance = _resolvedExpressions.GetDistance(expr);
@@ -125,7 +135,7 @@ namespace Lox.InterpreterVisitors
             return val;
         }
 
-        private object? VisitLogical(LogicalExpr logical)
+        private object? Visit(LogicalExpr logical)
         {
             var left = Evaluate(logical.Left);
             if (logical.Operator.TokenType == OR)
@@ -146,7 +156,7 @@ namespace Lox.InterpreterVisitors
             return Evaluate(logical.Right);
         }
 
-        private object? VisitCall(CallExpr call)
+        private object? Visit(CallExpr call)
         {
             var callee = Evaluate(call.Callee);
             var arguments = call.Arguments.Select(Evaluate).ToList();
@@ -161,7 +171,7 @@ namespace Lox.InterpreterVisitors
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }
 
-        private LoxFunction VisitFuncExpr(FunExpr funExpr)
+        private LoxFunction Visit(FunExpr funExpr)
         {
             return new LoxFunction(_environmentContext, null, funExpr);
         }
