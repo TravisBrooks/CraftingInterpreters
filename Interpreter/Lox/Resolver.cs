@@ -28,36 +28,38 @@ namespace Lox
             return node switch
             {
                 // Declarations
-                VarDecl varDecl => VisitVarDecl(varDecl),
-                FunDecl funDecl => VisitFunDecl(funDecl),
+                VarDecl varDecl => Visit(varDecl),
+                FunDecl funDecl => Visit(funDecl),
 
                 // Statements
-                ExprStatement es => VisitExprStatement(es),
-                PrintStatement ps => VisitPrintStatement(ps),
-                BlockStatement bs => VisitBlockStatement(bs),
-                IfStatement i => VisitIfStatement(i),
-                WhileStatement ws => VisitWhileStatement(ws),
-                ForStmt fs => ForStmtVisitor(fs),
-                BreakStatement => Unit.Value,
-                ContinueStatement => Unit.Value,
-                ReturnStatement rs => VisitReturnStatement(rs),
+                ExprStatement exprStatement => Visit(exprStatement),
+                PrintStatement printStatement => Visit(printStatement),
+                BlockStatement blockStatement => Visit(blockStatement),
+                IfStatement ifStatement => Visit(ifStatement),
+                WhileStatement whileStatement => Visit(whileStatement),
+                ForStmt forStmt => Visit(forStmt),
+                BreakStatement breakStatement => Visit(breakStatement),
+                ContinueStatement continueStatement => Visit(continueStatement),
+                ReturnStatement returnStatement => Visit(returnStatement),
 
                 // Expressions
-                LiteralExpr => Unit.Value,
-                GroupingExpr g => VisitGroupingExpr(g),
-                UnaryExpr u => VisitUnary(u),
-                BinaryExpr b => VisitBinaryExpr(b),
-                VariableExpr v => VisitVariableExpr(v),
-                AssignExpr a => VisitAssign(a),
-                LogicalExpr l => VisitLogical(l),
-                CallExpr c => VisitCall(c),
-                FunExpr fe => ResolveFunction(fe, FunctionType.FUNCTION),
+                LiteralExpr literalExpr => Visit(literalExpr),
+                GroupingExpr groupingExpr => Visit(groupingExpr),
+                UnaryExpr unaryExpr => Visit(unaryExpr),
+                BinaryExpr binaryExpr => Visit(binaryExpr),
+                VariableExpr variableExpr => Visit(variableExpr),
+                AssignExpr assignExpr => Visit(assignExpr),
+                LogicalExpr logicalExpr => Visit(logicalExpr),
+                CallExpr callExpr => Visit(callExpr),
+                FunExpr funExpr => Visit(funExpr),
 
                 _ => throw new RuntimeException(null, $"Unknown AST node type: {node.GetType().Name}")
             };
         }
 
-        private Unit VisitVarDecl(VarDecl varDecl)
+        #region Declaration Visitors
+
+        private Unit Visit(VarDecl varDecl)
         {
             Declare(varDecl.Name);
             if (varDecl.Initializer is not null)
@@ -68,26 +70,30 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitFunDecl(FunDecl funDecl)
+        private Unit Visit(FunDecl funDecl)
         {
             Declare(funDecl.Name);
             Define(funDecl.Name);
             return ResolveFunction(funDecl.FunExpr, FunctionType.FUNCTION);
         }
 
-        private Unit VisitExprStatement(ExprStatement es)
+        #endregion
+
+        #region Statement Visitors
+
+        private Unit Visit(ExprStatement es)
         {
             Resolve(es.Expression);
             return Unit.Value;
         }
 
-        private Unit VisitPrintStatement(PrintStatement ps)
+        private Unit Visit(PrintStatement ps)
         {
             Resolve(ps.Expression);
             return Unit.Value;
         }
 
-        private Unit VisitBlockStatement(BlockStatement bs)
+        private Unit Visit(BlockStatement bs)
         {
             BeginScope();
             Resolve(bs.Declarations);
@@ -95,7 +101,7 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitIfStatement(IfStatement ifStatement)
+        private Unit Visit(IfStatement ifStatement)
         {
             Resolve(ifStatement.Condition);
             Resolve(ifStatement.ThenBranch);
@@ -106,14 +112,14 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitWhileStatement(WhileStatement ws)
+        private Unit Visit(WhileStatement ws)
         {
             Resolve(ws.Condition);
             Resolve(ws.Body);
             return Unit.Value;
         }
 
-        private Unit ForStmtVisitor(ForStmt fs)
+        private Unit Visit(ForStmt fs)
         {
             var createdScope = false;
             if (fs.Initializer is VarDecl)
@@ -141,7 +147,17 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitReturnStatement(ReturnStatement rs)
+        private Unit Visit(BreakStatement breakStatement)
+        {
+            return Unit.Value;
+        }
+
+        private Unit Visit(ContinueStatement continueStatement)
+        {
+            return Unit.Value;
+        }
+
+        private Unit Visit(ReturnStatement rs)
         {
             if (_currentFunction == FunctionType.NONE)
             {
@@ -154,26 +170,35 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitGroupingExpr(GroupingExpr groupingExpr)
+        #endregion
+
+        #region Expression Visitors
+
+        private Unit Visit(LiteralExpr literalExpr)
+        {
+            return Unit.Value;
+        }
+
+        private Unit Visit(GroupingExpr groupingExpr)
         {
             Resolve(groupingExpr.Expression);
             return Unit.Value;
         }
 
-        private Unit VisitUnary(UnaryExpr unaryExpr)
+        private Unit Visit(UnaryExpr unaryExpr)
         {
             Resolve(unaryExpr.Right);
             return Unit.Value;
         }
 
-        private Unit VisitBinaryExpr(BinaryExpr binaryExpr)
+        private Unit Visit(BinaryExpr binaryExpr)
         {
             Resolve(binaryExpr.Left);
             Resolve(binaryExpr.Right);
             return Unit.Value;
         }
 
-        private Unit VisitVariableExpr(VariableExpr ve)
+        private Unit Visit(VariableExpr ve)
         {
             if (_scopes.Count > 0)
             {
@@ -188,21 +213,21 @@ namespace Lox
             return Unit.Value;
         }
 
-        private Unit VisitAssign(AssignExpr ae)
+        private Unit Visit(AssignExpr ae)
         {
             Resolve(ae.Value);
             ResolveLocal(ae, ae.Name);
             return Unit.Value;
         }
 
-        private Unit VisitLogical(LogicalExpr logicalExpr)
+        private Unit Visit(LogicalExpr logicalExpr)
         {
             Resolve(logicalExpr.Left);
             Resolve(logicalExpr.Right);
             return Unit.Value;
         }
 
-        private Unit VisitCall(CallExpr callExpr)
+        private Unit Visit(CallExpr callExpr)
         {
             Resolve(callExpr.Callee);
             foreach (var arg in callExpr.Arguments)
@@ -211,6 +236,13 @@ namespace Lox
             }
             return Unit.Value;
         }
+
+        private Unit Visit(FunExpr funExpr)
+        {
+            return ResolveFunction(funExpr, FunctionType.LAMBDA);
+        }
+
+        #endregion
 
         private void Declare(Token name)
         {
@@ -294,7 +326,8 @@ namespace Lox
         private enum FunctionType
         {
             NONE,
-            FUNCTION
+            FUNCTION,
+            LAMBDA
         }
     }
 }
