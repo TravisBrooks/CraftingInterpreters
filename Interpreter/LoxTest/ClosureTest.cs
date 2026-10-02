@@ -40,7 +40,7 @@
             Assert.Equal(["local", "after f", "after f", "after g"], outputMessages);
         }
 
-        [Fact(Skip = "This is the closure scope bug described in beginning of chapter 11, need to implement that chapter for test to pass.")]
+        [Fact]
         public void ShadowedVariable()
         {
             var source = """
@@ -107,7 +107,7 @@
             Assert.Equal(["b", "a"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ClosureOverMethodParameter()
         {
             var source = """

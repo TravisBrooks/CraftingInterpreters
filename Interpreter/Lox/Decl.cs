@@ -19,6 +19,8 @@
         }
     }
 
+    public record ClassDecl(Token Name, IEnumerable<FunDecl> Methods) : Decl;
+
     public record FunDecl(Token Name, FunExpr FunExpr) : Decl;
 
     public record VarDecl(Token Name, Expr? Initializer) : Decl;

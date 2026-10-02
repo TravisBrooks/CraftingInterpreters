@@ -124,7 +124,7 @@
            Assert.Equal(["var", "var"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ToThis()
         {
             var source = """

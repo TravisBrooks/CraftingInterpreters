@@ -2,7 +2,7 @@
 {
     public class ThisTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Closure()
         {
             var source = """
@@ -26,7 +26,7 @@
             Assert.Equal(["Foo"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void NestedClass()
         {
             var source = """
@@ -57,7 +57,7 @@
             Assert.Equal(["Outer instance", "Outer instance", "Inner instance"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void NestedClosure()
         {
             var source = """
@@ -87,7 +87,7 @@
             Assert.Equal(["Foo"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ThisAtTopLevel()
         {
             var source = """
@@ -100,7 +100,7 @@
             Assert.Contains("Error at 'this': Can't use 'this' outside of a class.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ThisInMethod()
         {
             var source = """
@@ -117,7 +117,7 @@
             Assert.Equal(["baz"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ThisInTopLevelFunction()
         {
             var source = """

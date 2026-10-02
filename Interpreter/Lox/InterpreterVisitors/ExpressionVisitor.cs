@@ -32,6 +32,9 @@ namespace Lox.InterpreterVisitors
                 AssignExpr assignExpr => Visit(assignExpr),
                 LogicalExpr logicalExpr => Visit(logicalExpr),
                 CallExpr callExpr => Visit(callExpr),
+                GetExpr getExpr => Visit(getExpr),
+                SetExpr setExpr => Visit(setExpr),
+                ThisExpr thisExpr => Visit(thisExpr),
                 FunExpr funExpr => Visit(funExpr),
                 _ => throw new RuntimeException(null, $"Unknown expression type: {expr.GetType().Name}")
             };
@@ -171,9 +174,41 @@ namespace Lox.InterpreterVisitors
             throw new RuntimeException(call.Paren, "Can only call functions and classes.");
         }
 
+        private object? Visit(GetExpr getExpr)
+        {
+            var obj = Evaluate(getExpr.Object);
+            if (obj is LoxInstance instance)
+            {
+                return instance.Get(getExpr.Name);
+            }
+            throw new RuntimeException(getExpr.Name, "Only instances have properties.");
+        }
+
+        private object? Visit(SetExpr setExpr)
+        {
+            var obj = Evaluate(setExpr.Object);
+            if (obj is not LoxInstance instance)
+            {
+                throw new RuntimeException(setExpr.Name, "Only instances have fields.");
+            }
+            var value = Evaluate(setExpr.Value);
+            instance.Set(setExpr.Name, value);
+            return value;
+        }
+
+        private object? Visit(ThisExpr thisExpr)
+        {
+            var distance = _resolvedExpressions.GetDistance(thisExpr);
+            if (distance is null)
+            {
+                throw new RuntimeException(thisExpr.Keyword, "Cannot use 'this' outside of a class.");
+            }
+            return _environmentContext.Environment.GetAt((int)distance!, thisExpr.Keyword);
+        }
+
         private LoxFunction Visit(FunExpr funExpr)
         {
-            return new LoxFunction(_environmentContext, null, funExpr);
+            return new LoxFunction(_environmentContext, null, funExpr, isInitializer: false);
         }
 
         private static double CheckOperandIsNumber(Token op, object? operand, Func<double, double> unaryHandler)

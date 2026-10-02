@@ -2,7 +2,7 @@
 {
     public class MethodTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Arity()
         {
             var source = """
@@ -35,7 +35,7 @@
             Assert.Equal(["no args", "1", "3", "6", "10", "15", "21", "28", "36"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void EmptyBlock()
         {
             var source = """
@@ -51,7 +51,7 @@
             Assert.Equal(["nil"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ExtraArguments()
         {
             var source = """
@@ -71,7 +71,7 @@
             Assert.Contains("Expected 2 arguments but got 4.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void MissingArguments()
         {
             var source = """
@@ -88,7 +88,7 @@
             Assert.Contains("Expected 2 arguments but got 1.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void NotFound()
         {
             var source = """
@@ -103,7 +103,7 @@
             Assert.Contains("Undefined property 'unknown'.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void PrintBoundMethod()
         {
             var source = """
@@ -116,10 +116,10 @@
             var output = Interpret(source);
             Assert.False(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
-            Assert.Equal(["<fn method>"], outputMessages);
+            Assert.Equal(["<fn method()>"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ReferToName()
         {
             var source = """

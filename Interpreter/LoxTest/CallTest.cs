@@ -12,7 +12,7 @@
             
             var foo = Foo();
             foo(); // expect runtime error: Can only call functions and classes.
-            """, "Can only call functions and classes."], Skip = "Haven't implemented classes yet")]
+            """, "Can only call functions and classes."])]
         [InlineData("\"str\"();", "Can only call functions and classes.")]
         public void IsItCallable(string source, string expected)
         {

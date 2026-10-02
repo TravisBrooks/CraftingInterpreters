@@ -2,7 +2,7 @@
 {
     public class FieldTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void CallFunctionField()
         {
             var source = """
@@ -28,7 +28,7 @@
             Assert.Equal(["bar", "1", "2"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void CallNonfunctionField()
         {
             var source = """
@@ -46,7 +46,7 @@
             Assert.Contains("Can only call functions and classes.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetAndSetMethod()
         {
             var source = """
@@ -82,7 +82,7 @@
             Assert.Equal(["other", "1", "method", "2"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnBool()
         {
             var source = """
@@ -95,7 +95,7 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnClass()
         {
             var source = """
@@ -109,7 +109,7 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnFunction()
         {
             var source = """
@@ -123,7 +123,7 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnNil()
         {
             var source = """
@@ -136,7 +136,7 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnNum()
         {
             var source = """
@@ -149,7 +149,7 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void GetOnString()
         {
             var source = """
@@ -163,10 +163,10 @@
             Assert.Contains("Only instances have properties.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ManyFields()
         {
-            var source = EmbeddedLoxFile.GetSource("Many.lox");
+            var source = EmbeddedLoxFile.GetSource("many.lox");
             var output = Interpret(source);
             Assert.False(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
@@ -253,7 +253,7 @@
                 ], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Method()
         {
             var source = """
@@ -273,7 +273,7 @@
             Assert.Equal(["got method", "arg"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void MethodBindsThis()
         {
             var source = """
@@ -303,7 +303,7 @@
             Assert.Equal(["foo1", "1"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void OnInstance()
         {
             var source = """
@@ -323,7 +323,7 @@
             Assert.Equal(["bar value", "baz value", "bar value", "baz value"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetEvaluationOrder()
         {
             var source = """
@@ -337,7 +337,7 @@
             Assert.Contains("Undefined variable 'undefined1'.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnBool()
         {
             var source = """
@@ -350,7 +350,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnClass()
         {
             var source = """
@@ -364,7 +364,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnFunction()
         {
             var source = """
@@ -378,7 +378,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnNil()
         {
             var source = """
@@ -391,7 +391,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnNum()
         {
             var source = """
@@ -404,7 +404,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void SetOnStr()
         {
             var source = """
@@ -417,7 +417,7 @@
             Assert.Contains("Only instances have fields.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Undefined()
         {
             var source = """

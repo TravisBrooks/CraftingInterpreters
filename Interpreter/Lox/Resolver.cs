@@ -8,6 +8,7 @@ namespace Lox
         private readonly ResolvedExpressions _resolvedExpressions;
         private readonly Stack<Dictionary<string, bool>> _scopes = new();
         private FunctionType _currentFunction = FunctionType.NONE;
+        private ClassType _currentClass = ClassType.NONE;
 
         public Resolver(ErrorLogger errLogger, ResolvedExpressions resolvedExpressions)
         {
@@ -30,6 +31,7 @@ namespace Lox
                 // Declarations
                 VarDecl varDecl => Visit(varDecl),
                 FunDecl funDecl => Visit(funDecl),
+                ClassDecl classDecl => Visit(classDecl),
 
                 // Statements
                 ExprStatement exprStatement => Visit(exprStatement),
@@ -51,6 +53,9 @@ namespace Lox
                 AssignExpr assignExpr => Visit(assignExpr),
                 LogicalExpr logicalExpr => Visit(logicalExpr),
                 CallExpr callExpr => Visit(callExpr),
+                GetExpr getExpr => Visit(getExpr),
+                SetExpr setExpr => Visit(setExpr),
+                ThisExpr thisExpr => Visit(thisExpr),
                 FunExpr funExpr => Visit(funExpr),
 
                 _ => throw new RuntimeException(null, $"Unknown AST node type: {node.GetType().Name}")
@@ -75,6 +80,33 @@ namespace Lox
             Declare(funDecl.Name);
             Define(funDecl.Name);
             return ResolveFunction(funDecl.FunExpr, FunctionType.FUNCTION);
+        }
+
+        private Unit Visit(ClassDecl classDecl)
+        {
+            var enclosingClass = _currentClass;
+            _currentClass = ClassType.CLASS;
+
+            Declare(classDecl.Name);
+            Define(classDecl.Name);
+
+            BeginScope();
+            _scopes.Peek()["this"] = true;
+            foreach (var method in classDecl.Methods)
+            {
+                Declare(method.Name);
+                Define(method.Name);
+                var functionType = FunctionType.METHOD;
+                if (method.Name.Lexeme == "init")
+                {
+                    functionType = FunctionType.INITIALIZER;
+                }
+                ResolveFunction(method.FunExpr, functionType);
+            }
+            EndScope();
+            _currentClass = enclosingClass;
+
+            return Unit.Value;
         }
 
         #endregion
@@ -165,6 +197,10 @@ namespace Lox
             }
             if (rs.Value is not null)
             {
+                if (_currentFunction == FunctionType.INITIALIZER)
+                {
+                    _errLogger.ReportError(rs.Keyword, "Can't return a value from an initializer.");
+                }
                 Resolve(rs.Value);
             }
             return Unit.Value;
@@ -234,6 +270,30 @@ namespace Lox
             {
                 Resolve(arg);
             }
+            return Unit.Value;
+        }
+
+        private Unit Visit(GetExpr getExpr)
+        {
+            Resolve(getExpr.Object);
+            return Unit.Value;
+        }
+
+        private Unit Visit(SetExpr setExpr)
+        {
+            Resolve(setExpr.Value);
+            Resolve(setExpr.Object);
+            return Unit.Value;
+        }
+
+        private Unit Visit(ThisExpr thisExpr)
+        {
+            if (_currentClass == ClassType.NONE)
+            {
+                _errLogger.ReportError(thisExpr.Keyword, "Can't use 'this' outside of a class.");
+                return Unit.Value;
+            }
+            ResolveLocal(thisExpr, thisExpr.Keyword);
             return Unit.Value;
         }
 
@@ -327,7 +387,15 @@ namespace Lox
         {
             NONE,
             FUNCTION,
-            LAMBDA
+            LAMBDA,
+            METHOD,
+            INITIALIZER
+        }
+
+        private enum ClassType
+        {
+            NONE,
+            CLASS
         }
     }
 }

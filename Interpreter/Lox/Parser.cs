@@ -10,7 +10,8 @@ namespace Lox
     // program        → declaration* EOF ;
     //
     // DECLARATIONS:
-    // declaration    → funDecl | varDecl | statement ;
+    // declaration    → classDecl | funDecl | varDecl | statement ;
+    // classDecl      → "class" IDENTIFIER "{" funDecl* "}" ;
     // funDecl        → "fun" IDENTIFIER fnExpression ;
     // varDecl        → "var" IDENTIFIER ( "=" expression )? ";" ;
     //
@@ -34,10 +35,10 @@ namespace Lox
     // term           → factor(( "-" | "+" ) factor )* ;
     // factor         → unary(( "/" | "*" | "%" ) unary )* ;
     // unary          → ( "!" | "-" ) unary | call ;
-    // call           → primary ( "(" arguments? ")" )* ;
+    // call           → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
     // primary        → NUMBER | STRING | "true" | "false" | "nil | "(" expression ")" | fnExpression ;
     // arguments      → expression ( "," expression )* ;
-    // fnExpression   → "(" parameters? ")" block ;
+    // fnExpression   → "(" parameters? ")" "{" declaration* "}" ;
     // parameters     → IDENTIFIER ( "," IDENTIFIER )* ;
     public class Parser
     {
@@ -82,6 +83,10 @@ namespace Lox
         {
             try
             {
+                if (Match(CLASS))
+                {
+                    return ClassDeclaration();
+                }
                 // the match on FUN is true it advances _current so to check if the next thing is an identifier we need to peek
                 if (Match(FUN) && Peek().TokenType == IDENTIFIER)
                 {
@@ -98,6 +103,20 @@ namespace Lox
                 Synchronize();
                 return null;
             }
+        }
+
+        // classDecl → "class" IDENTIFIER "{" funDecl* "}" ;
+        private ClassDecl ClassDeclaration()
+        {
+            var name = Consume(IDENTIFIER, "Expect class name.");
+            _ = Consume(LEFT_BRACE, "Expect '{' before class body.");
+            var methods = new List<FunDecl>();
+            while (!Check(RIGHT_BRACE) && !IsAtEnd())
+            {
+                methods.Add(FunDeclaration("method"));
+            }
+            _ = Consume(RIGHT_BRACE, "Expect '}' after class body.");
+            return new ClassDecl(name, methods);
         }
 
         // funDecl → "fun" IDENTIFIER fnExpression ;
@@ -335,7 +354,10 @@ namespace Lox
                     var name = variable.Name;
                     return new AssignExpr(name, value);
                 }
-
+                if (expr is GetExpr getExpr)
+                {
+                    return new SetExpr(getExpr.Object, getExpr.Name, value);
+                }
                 Error(equals, "Invalid assignment target.");
             }
 
@@ -405,7 +427,7 @@ namespace Lox
             return Call();
         }
 
-        // call → primary ( "(" arguments? ")" )* ;
+        // call → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
         private Expr Call()
         {
             var expr = Primary();
@@ -414,6 +436,11 @@ namespace Lox
                 if (Match(LEFT_PAREN))
                 {
                     expr = FinishCall(expr);
+                }
+                else if (Match(DOT))
+                {
+                    var name = Consume(IDENTIFIER, "Expect property name after '.'.");
+                    expr = new GetExpr(expr, name);
                 }
                 else
                 {
@@ -474,6 +501,11 @@ namespace Lox
                 return new LiteralExpr(Previous().Literal);
             }
 
+            if (Match(THIS))
+            {
+                return new ThisExpr(Previous());
+            }
+
             if (Match(IDENTIFIER))
             {
                 return new VariableExpr(Previous());
@@ -489,7 +521,7 @@ namespace Lox
             throw Error(Peek(), "Expect expression.");
         }
 
-        // fnExpression → "(" parameters? ")" block ;
+        // fnExpression → "(" parameters? ")" "{" declaration* "}" ;
         private FunExpr FnExpression(string kind)
         {
             _ = Consume(LEFT_PAREN, $"Expect '(' after {kind}.");

@@ -32,11 +32,27 @@ namespace Lox.InterpreterVisitors
         {
             return decl switch
             {
+                ClassDecl classDecl => Visit(classDecl),
                 VarDecl varDecl => Visit(varDecl),
                 FunDecl funDecl => Visit(funDecl),
                 Stmt stmt => Visit(stmt),
                 _ => throw new RuntimeException(null, $"Unknown declaration type: {decl.GetType().Name}")
             };
+        }
+
+        private Unit Visit(ClassDecl classDecl)
+        {
+            _environmentContext.Environment.Define(classDecl.Name.Lexeme, classDecl);
+            var methods = new Dictionary<string, LoxFunction>();
+            foreach (var method in classDecl.Methods)
+            {
+                var isInitializer = method.Name.Lexeme == "init";
+                var loxFunction = new LoxFunction(_environmentContext, method.Name.Lexeme, method.FunExpr, isInitializer);
+                methods[method.Name.Lexeme] = loxFunction;
+            }
+            var klass = new LoxClass(classDecl.Name.Lexeme, methods);
+            _environmentContext.Environment.Assign(classDecl.Name, klass);
+            return Unit.Value;
         }
 
         private Unit Visit(VarDecl varDecl)
@@ -54,7 +70,7 @@ namespace Lox.InterpreterVisitors
         private Unit Visit(FunDecl funDecl)
         {
             var fnName = funDecl.Name.Lexeme;
-            var fn = new LoxFunction(_environmentContext, fnName, funDecl.FunExpr);
+            var fn = new LoxFunction(_environmentContext, fnName, funDecl.FunExpr, isInitializer: false);
             _environmentContext.Environment.Define(fnName, fn);
             return Unit.Value;
         }

@@ -2,7 +2,7 @@
 {
     public class InheritanceTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void Constructor()
         {
             var source = """
@@ -27,7 +27,7 @@
             Assert.Equal(["value"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritFromFunction()
         {
             var source = """
@@ -41,7 +41,7 @@
             Assert.Contains("Superclass must be a class.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritFromNil()
         {
             var source = """
@@ -55,7 +55,7 @@
             Assert.Contains("Superclass must be a class.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritFromNumber()
         {
             var source = """
@@ -69,7 +69,7 @@
             Assert.Contains("Superclass must be a class.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritMethods()
         {
             var source = """
@@ -94,7 +94,7 @@
             Assert.Equal(["foo", "bar", "bar"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void ParenthesizeSuperclass()
         {
             var source = """
@@ -110,7 +110,7 @@
             Assert.Contains("Error at '(': Expect superclass name.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SetFieldsFromBaseClass()
         {
             var source = """

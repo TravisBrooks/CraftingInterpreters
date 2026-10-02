@@ -142,7 +142,7 @@
             Assert.Contains("Cannot use 'break' outside of a loop.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void CannotBreakInsideClass()
         {
             var source = """

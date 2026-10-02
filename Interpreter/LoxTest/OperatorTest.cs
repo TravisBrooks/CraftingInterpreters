@@ -216,7 +216,7 @@
             Assert.Equal(["true", "true", "false", "true", "false", "true", "false", "false", "false", "false"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void EqualityClasses()
         {
             var source = """
@@ -240,7 +240,7 @@
             Assert.Equal(["true", "false", "false", "true", "false", "false", "false", "false"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void EqualityMethod()
         {
             var source = """
@@ -458,7 +458,7 @@
             Assert.Equal(["false", "true", "true", "false", "false", "true", "false", "false"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void NotClasses()
         {
             var source = """

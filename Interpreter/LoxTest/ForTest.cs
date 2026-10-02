@@ -2,7 +2,7 @@
 {
     public class ForTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ClassInBody()
         {
             var source = """

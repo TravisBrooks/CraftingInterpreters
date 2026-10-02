@@ -38,5 +38,11 @@ namespace Lox
 
     public record CallExpr(Expr Callee, Token Paren, IEnumerable<Expr> Arguments) : Expr;
 
+    public record GetExpr(Expr Object, Token Name) : Expr;
+
+    public record SetExpr(Expr Object, Token Name, Expr Value) : Expr;
+
+    public record ThisExpr(Token Keyword) : Expr;
+
     public record FunExpr(IList<Token> Parameters, IEnumerable<Decl> Body) : Expr;
 }

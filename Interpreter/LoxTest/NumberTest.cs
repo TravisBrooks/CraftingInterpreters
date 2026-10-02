@@ -2,11 +2,7 @@
 {
     public class NumberTest : InterpreterTestBase
     {
-        /// <summary>
-        /// Its not super obvious but I believe the expected error will only show up after changes to the parser for classes. Currently
-        /// the line fails with the message: ERROR [line 2] Error at '.': Expect ';' after expression.
-        /// </summary>
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void DecimalPointAtEndOfFile()
         {
             var source = """
@@ -75,7 +71,7 @@
         /// Its not super obvious but I believe the expected error will only show up after changes to the parser for classes. Currently
         /// the line fails with the message: ERROR [line 2] Error at '.': Expect ';' after expression.
         /// </summary>
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void TrailingDot()
         {
             var source = """

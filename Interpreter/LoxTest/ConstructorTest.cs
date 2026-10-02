@@ -2,7 +2,7 @@
 {
     public class ConstructorTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Arguments()
         {
             var source = """
@@ -21,10 +21,10 @@
             var output = Interpret(source);
             Assert.False(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
-            Assert.Equal(["1", "2"], outputMessages);
+            Assert.Equal(["init", "1", "2"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void CallInitEarlyReturn()
         {
             var source = """
@@ -46,7 +46,7 @@
             Assert.Equal(["init", "init", "Foo instance"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void CallInitExplicitly()
         {
             var source = """
@@ -72,7 +72,7 @@
             Assert.Equal(["Foo.init(one)", "Foo.init(two)", "Foo instance", "init"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void Default()
         {
             var source = """
@@ -87,7 +87,7 @@
             Assert.Equal(["Foo instance"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void DefaultArguments()
         {
             var source = """
@@ -102,7 +102,7 @@
             Assert.Contains("Expected 0 arguments but got 3.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void EarlyReturn()
         {
             var source = """
@@ -123,7 +123,7 @@
             Assert.Equal(["init", "Foo instance"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ExtraArguments()
         {
             var source = """
@@ -143,7 +143,7 @@
             Assert.Contains("Expected 2 arguments but got 4.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void InitNotMethod()
         {
             var source = """
@@ -166,7 +166,7 @@
             Assert.Equal(["not initializer"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void MissingArguments()
         {
             var source = """
@@ -183,7 +183,7 @@
             Assert.Contains("Expected 2 arguments but got 1.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ReturnInNestedFunction()
         {
             var source = """
@@ -204,7 +204,7 @@
             Assert.Equal(["bar", "Foo instance"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ReturnInInit()
         {
             var source = """

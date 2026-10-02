@@ -108,7 +108,7 @@
             Assert.Equal(["outer"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void LocalFromMethod()
         {
             var source = """

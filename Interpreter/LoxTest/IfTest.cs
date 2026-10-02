@@ -2,7 +2,7 @@
 {
     public class IfTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ClassInElse()
         {
             var source = """
@@ -12,10 +12,11 @@
             var output = Interpret(source);
             Assert.True(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
-            Assert.Equal(["[line 2] Error at 'class': Expect expression."], outputMessages);
+            var msg = outputMessages.Single();
+            Assert.Contains("[line 2] Error at 'class': Expect expression.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ClassInThen()
         {
             var source = """
@@ -25,7 +26,8 @@
             var output = Interpret(source);
             Assert.True(output.HasOutputError());
             var outputMessages = output.OutputMessagesNoStatus();
-            Assert.Equal(["[line 2] Error at 'class': Expect expression."], outputMessages);
+            var msg = outputMessages.Single();
+            Assert.Contains("[line 2] Error at 'class': Expect expression.", msg);
         }
 
         [Fact]

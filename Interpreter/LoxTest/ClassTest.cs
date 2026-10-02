@@ -2,7 +2,7 @@
 {
     public class ClassTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void EmptyClass()
         {
             var source = """
@@ -16,7 +16,7 @@
             Assert.Equal(["Foo"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritSelf()
         {
             var source = """
@@ -29,7 +29,7 @@
             Assert.Contains("A class can't inherit from itself.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void InheritedMethod()
         {
             var source = """
@@ -62,7 +62,7 @@
             Assert.Equal(["in foo", "in bar", "in baz"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void LocalInheritOther()
         {
             var source = """
@@ -81,7 +81,7 @@
             Assert.Equal(["B"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void LocalInheritSelf()
         {
             var source = """
@@ -100,7 +100,7 @@
             Assert.Contains("Expect '}' after block.", msg2);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void LocalReferenceSelf()
         {
             var source = """
@@ -120,7 +120,7 @@
             Assert.Equal(["Foo"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void ReferenceSelf()
         {
             var source = """

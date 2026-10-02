@@ -2,7 +2,7 @@
 {
     public class SuperTest : InterpreterTestBase
     {
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void BoundMethod()
         {
             var source = """
@@ -32,7 +32,7 @@
             Assert.Equal(["A.method(arg)"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void CallOtherMethod()
         {
             var source = """
@@ -59,7 +59,7 @@
             Assert.Equal(["Derived.bar()", "Base.foo()"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void CallSameMethod()
         {
             var source = """
@@ -86,7 +86,7 @@
             Assert.Equal(["Derived.foo()", "Base.foo()"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void Closure()
         {
             var source = """
@@ -114,7 +114,7 @@
             Assert.Equal(["Base"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void Constructor()
         {
             var source = """
@@ -141,7 +141,7 @@
             Assert.Equal(["Derived.init()", "Base.init(a, b)"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void ExtraArguments()
         {
             var source = """
@@ -172,7 +172,7 @@
             Assert.Contains("Error: Unterminated string.", msgs[1].Message);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void IndirectlyInherited()
         {
             var source = """
@@ -201,7 +201,7 @@
             Assert.Equal(["C.foo()", "A.foo()"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void MissingArguments()
         {
             var source = """
@@ -226,7 +226,7 @@
             Assert.Contains("Error: Expected 2 arguments but got 1.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void NoSuperclassBind()
         {
             var source = """
@@ -245,7 +245,7 @@
             Assert.Contains("Error: Can't use 'super' in a class with no superclass.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void NoSuperclassCall()
         {
             var source = """
@@ -264,7 +264,7 @@
             Assert.Contains("Error: Can't use 'super' in a class with no superclass.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void NoSuperclassMethod()
         {
             var source = """
@@ -285,7 +285,7 @@
             Assert.Contains("Error: Undefined property 'doesNotExist'.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void Parenthized()
         {
             var source = """
@@ -307,7 +307,7 @@
             Assert.Contains("Error at ')': Expect '.' after 'super'.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void ReassignSuperclass()
         {
             var source = """
@@ -340,7 +340,7 @@
             Assert.Equal(["Base.method()", "Base.method()"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperAtTopLevel()
         {
             var source = """
@@ -359,7 +359,7 @@
             Assert.Contains("Error at 'super': Can't use 'super' outside of a class.", msgs[1].Message);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperInClosureInInheritedMethod()
         {
             var source = """
@@ -396,7 +396,7 @@
             Assert.Equal(["A"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperInInheritedMethod()
         {
             var source = """
@@ -430,7 +430,7 @@
             Assert.Equal(["A"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperInTopLevelFunction()
         {
             var source = """
@@ -445,7 +445,7 @@
             Assert.Contains("Error at 'super': Can't use 'super' outside of a class.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperWithoutDot()
         {
             var source = """
@@ -465,7 +465,7 @@
             Assert.Contains("Error at ';': Expect '.' after 'super'.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void SuperWithoutName()
         {
             var source = """
@@ -484,7 +484,7 @@
             Assert.Contains("Error at ';': Expect superclass method name.", msg);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact(Skip = "Haven't implemented inheritance yet")]
         public void ThisInSuperclassMethod()
         {
             var source = """

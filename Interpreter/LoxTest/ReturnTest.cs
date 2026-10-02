@@ -80,7 +80,7 @@
             Assert.Equal(["ok"], outputMessages);
         }
 
-        [Fact(Skip = "Haven't implemented classes yet")]
+        [Fact]
         public void InMethod()
         {
             var source = """
